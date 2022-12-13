@@ -12,8 +12,8 @@ SRCREV_FORMAT = "main"
 SRCREV_main = "8f6a027d473f9b4796509158962d8ddf89fbe086"
 SRCREV_comp = "cf13bff238397aab0d8c49b7f6263233cf8a2396"
 SRCREV_catch = "89f5f8435176aad44624442b7f1e874a513bee67"
-SRC_URI = "git://github.com/foonathan/memory.git;protocol=https;name=main \
-    git://github.com/foonathan/compatibility.git;protocol=https;name=comp;destsuffix=git/cmake/comp \
+SRC_URI = "git://github.com/foonathan/memory.git;branch=main;protocol=https;name=main \
+    git://github.com/foonathan/compatibility.git;protocol=https;name=comp;destsuffix=git/cmake/comp;branch=master \
     git://github.com/catchorg/Catch2.git;branch=v2.x;protocol=https;name=catch;destsuffix=git/catch-upstream \
 "
 S = "${WORKDIR}/git"
@@ -50,6 +50,9 @@ CXXFLAGS += "-fPIC"
 # and similarly for native
 # fastrtps-native/1.9.3-1-r0/recipe-sysroot-native/usr/lib/libfoonathan_memory-0.6.2.a(virtual_memory.cpp.o): relocation R_X86_64_PC32 against symbol `_ZN9foonathan6memory24virtual_memory_page_sizeE' can not be used when making a shared object; recompile with -fPIC
 BUILD_CXXFLAGS += "-fPIC"
+# Next to CXXFLAGS and BUILD_CXXFLAGS
+# we require this for the nativesdk target:
+BUILDSDK_CXXFLAGS += "-fPIC"
 
 # We need to stage nodesize_dbg binary, because foonathan_memory-config.cmake references it and without this foonathan-memory-vendor fails with:
 # | CMake Error at /jenkins/mjansa/build-ros-thud-dashing/BUILD/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/foonathan-memory-vendor/0.3.0-1-r0/recipe-sysroot/usr/share/foonathan_memory/cmake/foonathan_memory-config.cmake:83 (message):
@@ -62,7 +65,7 @@ BUILD_CXXFLAGS += "-fPIC"
 # |
 # |   * The file was deleted, renamed, or moved to another location.
 #
-SYSROOT_DIRS_append = " ${bindir}"
+SYSROOT_DIRS:append = " ${bindir}"
 
 EXTRA_OECMAKE += "-DFOONATHAN_MEMORY_BUILD_TESTS=OFF"
 # To prevent CMake fetching catch.hpp during do_configure from:
@@ -70,14 +73,14 @@ EXTRA_OECMAKE += "-DFOONATHAN_MEMORY_BUILD_TESTS=OFF"
 # also the compatibility points to older repo which doesn't enymore:
 # cmake/comp/_test/CMakeLists.txt:        https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
 # Even this doesn't work well
-# do_configure_prepend() {
+# do_configure:prepend() {
 #     mkdir ${B}/test
 #     ln -snvf ${S}/catch-upstream/single_include/catch2/catch.hpp ${B}/test/catch.hpp
 # }
 # because ${B}/test (as CMAKE_CURRENT_BINARY_DIR is recreated as empty, I can patch test/CMakeLists.txt to use
 # catch.hpp from ${S}/CMAKE_CURRENT_SOURCE_DIR but we don't need the tests, lets disable them completely
 
-FILES_${PN}-dev += "${datadir}/foonathan_memory/cmake"
-FILES_${PN}-doc += "${datadir}/foonathan_memory"
+FILES:${PN}-dev += "${datadir}/foonathan_memory/cmake"
+FILES:${PN}-doc += "${datadir}/foonathan_memory"
 
-BBCLASSEXTEND = "native"
+BBCLASSEXTEND = "native nativesdk"
