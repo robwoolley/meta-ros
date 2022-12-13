@@ -13,14 +13,35 @@ S = "${WORKDIR}/GeographicLib-${PV}"
 
 PACKAGE_BEFORE_PN += "${PN}-tools"
 
-FILES_${PN}-tools = " \
+FILES:${PN}-tools = " \
     ${bindir} \
     ${sbindir} \
 "
 
 PACKAGES += "${PN}-matlab ${PN}-node ${PN}-python"
-FILES_${PN}-matlab = "${datadir}/matlab"
-FILES_${PN}-node = "${libdir}/node_modules"
-FILES_${PN}-python = "${libdir}/python"
+FILES:${PN}-matlab = "${datadir}/matlab"
+FILES:${PN}-node = "${libdir}/node_modules"
+FILES:${PN}-python = "${libdir}/python"
 
 inherit cmake
+
+# enable both shared and static libraries (static is required by robot-localization-2.6.9-1 in melodic)
+# Ensure geographiclib is configured to the proper folder to look for data files.
+EXTRA_OECMAKE += "-DGEOGRAPHICLIB_LIB_TYPE=BOTH -DGEOGRAPHICLIB_DATA=/usr/share/GeographicLib"
+
+# stage bindir to keep CMake happy
+# | -- Reading /jenkins/mjansa/build/ros/webos-melodic-hardknott/tmp-glibc/work/qemux86-webos-linux/robot-localization/2.6.9-1-r0/recipe-sysroot/usr/lib/cmake/GeographicLib/geographiclib-config.cmake
+# | -- GeographicLib configuration, version 1.48
+# | CMake Error at /jenkins/mjansa/build/ros/webos-melodic-hardknott/tmp-glibc/work/qemux86-webos-linux/robot-localization/2.6.9-1-r0/recipe-sysroot/usr/lib/cmake/GeographicLib/geographiclib-targets.cmake:123 (message):
+# |   The imported target "CartConvert" references the file
+# |
+# |      "/jenkins/mjansa/build/ros/webos-melodic-hardknott/tmp-glibc/work/qemux86-webos-linux/robot-localization/2.6.9-1-r0/recipe-sysroot/usr/bin/CartConvert"
+# |
+# |   but this file does not exist.  Possible reasons include:
+# OE doesn't stage ${bindir} for target recipes, but in this case the CartConvert isn't
+# being called during the cross-build, so we can include it just to keep CMake happy
+sysroot_stage_all:append() {
+    sysroot_stage_dir ${D}${bindir} ${SYSROOT_DESTDIR}${bindir}
+}
+
+SRC_URI += "file://0001-Fix-build-with-gcc-11.patch"
