@@ -4,6 +4,8 @@ Date: Tue, 22 Jan 2019 20:38:27 +0100
 Subject: [PATCH] Fix deprecated boost endians.
 
 Upstream-Status: Backport [1.10.0 https://github.com/PointCloudLibrary/pcl/commit/dbadf4143bdc503203da0d87a786752a60d29e76]
+
+Signed-off-by: Martin Jansa <martin.jansa@lge.com>
 ---
  common/include/pcl/PCLPointCloud2.h | 8 ++++----
  io/include/pcl/io/ply/byte_order.h  | 8 ++++----
