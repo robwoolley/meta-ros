@@ -191,7 +191,6 @@ ROS_WORLD_SKIP_GROUPS += " \
 # do_compile failures
 ROS_WORLD_SKIP_GROUPS += " \
     lanelet2-core \
-    qt-gui-cpp \
     self-test \
 "
 
