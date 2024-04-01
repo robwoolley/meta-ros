@@ -30,8 +30,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10' 
-      - run: pwd
-      - run: ls
       - name: Install superflore and rosdep
         run: pip install superflore
       - run: mkdir -p ${ROS_HOME}
@@ -42,6 +40,8 @@ jobs:
         run: rosdep update
       - name: Set local rosdep
         run: sed -i -e "s|${ROSDISTRO_URL}|file://${GITHUB_WORKSPACE}/rosdistro/rosdep|" ${ROSDEP_SOURCE_PATH}/20-default.list
+      - nane Check 20-default.list
+        run: cat ${ROSDEP_SOURCE_PATH}/20-default.list
       - name: Check out rosdistro
         uses: actions/checkout@v4
         with:
