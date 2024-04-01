@@ -48,6 +48,8 @@ jobs:
           cd ${GITHUB_WORKSPACE}/rosdistro
           pwd
           ls ${ROS_DISTRO}/*
+          git branch
+          git tag -l
           git tag --list "${ROS_DISTRO}/*"          
           echo `git tag --list "${ROS_DISTRO}/*"`
           echo "ROS_DISTRO_RELEASE_DATE=`git tag --list "${ROS_DISTRO}/*" | sort | tail -n1`" >> "${GITHUB_WORKSPACE}/rosdistro_commit.env"
