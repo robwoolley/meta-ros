@@ -40,7 +40,7 @@ jobs:
         run: rosdep update
       - name: Set local rosdep
         run: sed -i -e "s|${ROSDISTRO_URL}|file://${GITHUB_WORKSPACE}/rosdistro/rosdep|" ${ROSDEP_SOURCE_PATH}/20-default.list
-      - name Check 20-default.list
+      - name: Check 20-default.list
         run: cat ${ROSDEP_SOURCE_PATH}/20-default.list
       - name: Check out rosdistro
         uses: actions/checkout@v4
