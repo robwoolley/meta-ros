@@ -49,7 +49,7 @@ jobs:
           echo "ROSDISTRO_COMMIT=$(git rev-parse ${ROS_DISTRO_RELEASE_DATE})" >> "${GITHUB_WORKSPACE}/rosdistro_commit.env"
           echo "ROS_DISTRO_RELEASE_DATE_ONLY=$(echo ${ROS_DISTRO_RELEASE_DATE} | cut -d/ -f2)" >> "${GITHUB_WORKSPACE}/rosdistro_commit.env"
       - name: Output the meta-ros parameters to use
-        run: cat ${GITHUB_WORKSPACE}/rosdistro_commit.env"
+        run: cat ${GITHUB_WORKSPACE}/rosdistro_commit.env
       - name: Run ros-generate-cache.sh
         run: |
           cd ${GITHUB_WORKSPACE}/meta-ros
