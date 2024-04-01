@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ROS_HOME: "${GITHUB_WORKSPACE}/roshome"
-      ROSDEP_SOURCE_PATH: "${GITHUB_WORKSPACE}/rosdep"
+      ROS_HOME: "$GITHUB_WORKSPACE/roshome"
+      ROSDEP_SOURCE_PATH: "$GITHUB_WORKSPACE/rosdep"
       ROS_DISTRO: "humble"
       ROSDISTRO_URL: "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
       GIT_FULLNAME: "Rob Woolley"
