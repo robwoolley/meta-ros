@@ -9,6 +9,7 @@ jobs:
 
     env:
       ROS_HOME: "${GITHUB_WORKSPACE}/roshome"
+      ROS_DISTRO: "humble"
 
     steps:
       - run: pwd
@@ -25,7 +26,6 @@ jobs:
       - name: Install superflore and rosdep
         run: pip install superflore
       - run: mkdir -p ${ROS_HOME}
-      - run: mkdir -p ${ROSDEP_SOURCE_PATH}
       - name: Initialize rosdep cache
         run: rosdep init
       - name: Update rosdep cache
