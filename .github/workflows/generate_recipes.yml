@@ -42,16 +42,16 @@ jobs:
         with:
           repository: ros/rosdistro
           path: rosdistro
-      - name: Run ros-generate-cache.sh
+      - name: Gather ros distro parameters
         run: |
           cd ${GITHUB_WORKSPACE}/rosdistro
-          ROS_DISTRO_RELEASE_DATE=$(git tag --list "${ROS_DISTRO}/*" | sort | tail -n1)
-          echo "ROS_DISTRO_RELEASE_DATE: ${ROS_DISTRO_RELEASE_DATE}"
-          ROSDISTRO_COMMIT=$(git rev-parse ${ROS_DISTRO_RELEASE_DATE})
-          echo "ROSDISTRO_COMMIT: ${ROSDISTRO_COMMIT}"
-          ROS_DISTRO_RELEASE_DATE_ONLY=$(echo ${ROS_DISTRO_RELEASE_DATE} | cut -d/ -f2)
-          echo "ROS_DISTRO_RELEASE_DATE_ONLY: ${ROS_DISTRO_RELEASE_DATE_ONLY}"
+          echo "ROS_DISTRO_RELEASE_DATE=$(git tag --list "${ROS_DISTRO}/*" | sort | tail -n1)" >> "${GITHUB_WORKSPACE}/rosdistro_commit.env"
+          echo "ROSDISTRO_COMMIT=$(git rev-parse ${ROS_DISTRO_RELEASE_DATE})" >> "${GITHUB_WORKSPACE}/rosdistro_commit.env"
+          echo "ROS_DISTRO_RELEASE_DATE_ONLY=$(echo ${ROS_DISTRO_RELEASE_DATE} | cut -d/ -f2)" >> "${GITHUB_WORKSPACE}/rosdistro_commit.env"
+      - name: Output the meta-ros parameters to use
+        run: cat ${GITHUB_WORKSPACE}/rosdistro_commit.env"
+      - name: Run ros-generate-cache.sh
           cd ${GITHUB_WORKSPACE}/meta-ros
-          sh scripts/ros-generate-cache.sh ${ROS_DISTRO} ${ROS_DISTRO_RELEASE_DATE_ONLY} /work/rosdistro/ ${ROSDISTRO_COMMIT}
+          source "${GITHUB_WORKSPACE}/rosdistro_commit.env" && sh scripts/ros-generate-cache.sh ${ROS_DISTRO} ${ROS_DISTRO_RELEASE_DATE_ONLY} /work/rosdistro/ ${ROSDISTRO_COMMIT}
       
       - run: echo "🍏 This job's status is ${{ job.status }}."
