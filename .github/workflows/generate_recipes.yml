@@ -11,15 +11,14 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ROS_HOME: "$GITHUB_WORKSPACE/roshome"
-      ROSDEP_SOURCE_PATH: "$GITHUB_WORKSPACE/rosdep"
+      ROS_HOME: "${{ github.workspace }}/roshome"
+      ROSDEP_SOURCE_PATH: "${{ github.workspace }}/rosdep"
       ROS_DISTRO: "humble"
       ROSDISTRO_URL: "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
       GIT_FULLNAME: "Rob Woolley"
       GIT_EMAIL: "rob.woolley@windriver.com"
 
     steps:
-      - run: pwd
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
