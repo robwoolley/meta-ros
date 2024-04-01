@@ -51,6 +51,7 @@ jobs:
       - name: Output the meta-ros parameters to use
         run: cat ${GITHUB_WORKSPACE}/rosdistro_commit.env"
       - name: Run ros-generate-cache.sh
+        run: |
           cd ${GITHUB_WORKSPACE}/meta-ros
           source "${GITHUB_WORKSPACE}/rosdistro_commit.env" && sh scripts/ros-generate-cache.sh ${ROS_DISTRO} ${ROS_DISTRO_RELEASE_DATE_ONLY} /work/rosdistro/ ${ROSDISTRO_COMMIT}
       
