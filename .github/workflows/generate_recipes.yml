@@ -1,5 +1,8 @@
 name: Generate Bitbake Recipes
 on:
+  push:
+    branches: ['devel']
+    
   # Allow for manually running
   workflow_dispatch:
 
