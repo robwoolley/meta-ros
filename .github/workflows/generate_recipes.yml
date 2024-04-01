@@ -42,6 +42,7 @@ jobs:
         with:
           repository: ros/rosdistro
           path: rosdistro
+          fetch-tags: true
       - name: Gather ros distro parameters
         run: |
           cd ${GITHUB_WORKSPACE}/rosdistro
