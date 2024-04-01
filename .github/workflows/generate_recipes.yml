@@ -14,6 +14,7 @@ jobs:
       ROS_HOME: "${GITHUB_WORKSPACE}/roshome"
       ROSDEP_SOURCE_PATH: "${GITHUB_WORKSPACE}/rosdep"
       ROS_DISTRO: "humble"
+      ROSDISTRO_URL: "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
       GIT_FULLNAME: "Rob Woolley"
       GIT_EMAIL: "rob.woolley@windriver.com"
 
@@ -39,6 +40,8 @@ jobs:
         run: rosdep init
       - name: Update rosdep cache
         run: rosdep update
+      - name: Set local rosdep
+        run: sed -i -e "s|${ROSDISTRO_URL}|file://${GITHUB_WORKSPACE}/rosdistro/rosdep|" ${ROSDEP_SOURCE_PATH}/20-default.list
       - name: Check out rosdistro
         uses: actions/checkout@v4
         with:
