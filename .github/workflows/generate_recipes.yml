@@ -14,6 +14,8 @@ jobs:
       ROS_HOME: "${GITHUB_WORKSPACE}/roshome"
       ROSDEP_SOURCE_PATH: "${GITHUB_WORKSPACE}/rosdep"
       ROS_DISTRO: "humble"
+      GIT_FULLNAME: "Rob Woolley"
+      GIT_EMAIL: "rob.woolley@windriver.com"
 
     steps:
       - run: pwd
@@ -56,9 +58,18 @@ jobs:
         shell: bash
       - name: Output the meta-ros parameters to use
         run: cat ${GITHUB_WORKSPACE}/rosdistro_commit.env
+      - name: Set git config
+        run: |
+          git config --global user.name  "${GIT_FULLNAME}"
+          git config --global user.email "${GIT_EMAIL}"
       - name: Run ros-generate-cache.sh
         run: |
           cd ${GITHUB_WORKSPACE}/meta-ros
-          source "${GITHUB_WORKSPACE}/rosdistro_commit.env" && sh scripts/ros-generate-cache.sh ${ROS_DISTRO} ${ROS_DISTRO_RELEASE_DATE_ONLY} /work/rosdistro/ ${ROSDISTRO_COMMIT}
+          source "${GITHUB_WORKSPACE}/rosdistro_commit.env"
+          sh scripts/ros-generate-cache.sh ${ROS_DISTRO} ${ROS_DISTRO_RELEASE_DATE_ONLY} ${GITHUB_WORKSPACE}/rosdistro/ ${ROSDISTRO_COMMIT}
+      - name: Run ros-generate-recipes.sh
+        run: |
+          cd ${GITHUB_WORKSPACE}/meta-ros
+          sh scripts/ros-generate-recipes.sh ${ROS_DISTRO}
       
       - run: echo "🍏 This job's status is ${{ job.status }}."
