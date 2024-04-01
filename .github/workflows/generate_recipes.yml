@@ -39,12 +39,16 @@ jobs:
         with:
           repository: ros/rosdistro
           path: rosdistro
-      - run: cd ${GITHUB_WORKSPACE}/rosdistro
-      - run: ROS_DISTRO_RELEASE_DATE=$(git tag --list "${ROS_DISTRO}/*" | sort | tail -n1)
-      - run: echo ${ROS_DISTRO_RELEASE_DATE}
-      - run: ROSDISTRO_COMMIT=$(git rev-parse ${ROS_DISTRO_RELEASE_DATE})
-      - run: echo ${ROSDISTRO_COMMIT}
-      - run: ROS_DISTRO_RELEASE_DATE_ONLY=$(echo ${ROS_DISTRO_RELEASE_DATE} | cut -d/ -f2)
-      - run: echo ${ROS_DISTRO_RELEASE_DATE_ONLY}
+      - name: Run ros-generate-cache.sh
+        run: |
+          cd ${GITHUB_WORKSPACE}/rosdistro
+          ROS_DISTRO_RELEASE_DATE=$(git tag --list "${ROS_DISTRO}/*" | sort | tail -n1)
+          echo "ROS_DISTRO_RELEASE_DATE: ${ROS_DISTRO_RELEASE_DATE}"
+          ROSDISTRO_COMMIT=$(git rev-parse ${ROS_DISTRO_RELEASE_DATE})
+          echo "ROSDISTRO_COMMIT: ${ROSDISTRO_COMMIT}"
+          ROS_DISTRO_RELEASE_DATE_ONLY=$(echo ${ROS_DISTRO_RELEASE_DATE} | cut -d/ -f2)
+          echo "ROS_DISTRO_RELEASE_DATE_ONLY: ${ROS_DISTRO_RELEASE_DATE_ONLY}"
+          cd ${GITHUB_WORKSPACE}/meta-ros
+          sh scripts/ros-generate-cache.sh ${ROS_DISTRO} ${ROS_DISTRO_RELEASE_DATE_ONLY} /work/rosdistro/ ${ROSDISTRO_COMMIT}
       
       - run: echo "🍏 This job's status is ${{ job.status }}."
