@@ -45,10 +45,8 @@ jobs:
       - name: Gather ros distro parameters
         run: |
           cd ${GITHUB_WORKSPACE}/rosdistro
-          echo "DATE=$(date)"
-          echo "DATA=`date`"
-          $(date)
-          `date`
+          pwd
+          ls ${ROS_DISTRO}/*
           git tag --list "${ROS_DISTRO}/*"          
           echo `git tag --list "${ROS_DISTRO}/*"`
           echo "ROS_DISTRO_RELEASE_DATE=`git tag --list "${ROS_DISTRO}/*" | sort | tail -n1`" >> "${GITHUB_WORKSPACE}/rosdistro_commit.env"
