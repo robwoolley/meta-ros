@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ROS_HOME: "/home/runner/meta-ros/roshome"
-      ROSDEP_SOURCE_PATH: "/work/rosdep"
+      ROS_HOME: "${GITHUB_WORKSPACE}/roshome"
+      ROSDEP_SOURCE_PATH: "${GITHUB_WORKSPACE}/rosdep"
 
     steps:
       - run: pwd
