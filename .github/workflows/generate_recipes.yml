@@ -8,10 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ROS_HOME: "/work/roshome"
+      ROS_HOME: "/home/runner/meta-ros/roshome"
       ROSDEP_SOURCE_PATH: "/work/rosdep"
 
     steps:
+      - run: pwd
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
@@ -23,6 +24,8 @@ jobs:
       - run: pwd
       - run: ls
       - run: pip install superflore
+      - run: mkdir -p ${ROS_HOME}
+      - run: mkdir -p ${ROSDEP_SOURCE_PATH}
       - run: rosdep init
       - run: rosdep update
       - run: echo "🍏 This job's status is ${{ job.status }}."
