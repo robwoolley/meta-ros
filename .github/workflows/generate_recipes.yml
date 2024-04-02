@@ -25,7 +25,7 @@ jobs:
     env:
       ROS_HOME: "${{ github.workspace }}/roshome"
       ROSDEP_SOURCE_PATH: "${{ github.workspace }}/rosdep"
-      ROS_DISTRO: ${{ inputs.rosdistro }}
+      ROS_DISTRO: ${{ inputs.ros_distro }}
       ROSDISTRO_URL: "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
       GIT_FULLNAME: "Rob Woolley"
       GIT_EMAIL: "rob.woolley@windriver.com"
