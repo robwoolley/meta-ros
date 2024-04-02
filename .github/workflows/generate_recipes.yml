@@ -115,7 +115,7 @@ jobs:
             git branch -M superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}
             git push origin superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}
             echo "Creating Pull Request"
-            gh pr create --title "Superflore Update for $GITHUB_REF_NAME : ${ROS_DISTRO} : ${ROS_DISTRO_RELEASE_DATE_ONLY}" --fill-verbose 
+            gh pr create --title "Superflore Update for $GITHUB_REF_NAME : ${ROS_DISTRO} : ${ROS_DISTRO_RELEASE_DATE_ONLY}" --base $GITHUB_REF_NAME --fill-verbose 
           else
             echo "Warning: The name of the branch didn't match the expected output."
             echo "Branch: ${CURRENT_BRANCH}"
