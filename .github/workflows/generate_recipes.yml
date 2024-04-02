@@ -2,7 +2,22 @@ name: Generate Bitbake Recipes
 on:    
   # Allow for manually running
   workflow_dispatch:
-
+    inputs:
+      ros_distro:
+        description: 'ROS Distro'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+          - noetic
+          - humble
+          - iron
+          - rolling
+      dry_run:
+        description: 'Run the workflow but do not push'
+        required: true
+        type: boolean
+        default: false
 jobs:
   generate-recipes:
     runs-on: ubuntu-latest
@@ -10,7 +25,7 @@ jobs:
     env:
       ROS_HOME: "${{ github.workspace }}/roshome"
       ROSDEP_SOURCE_PATH: "${{ github.workspace }}/rosdep"
-      ROS_DISTRO: "humble"
+      ROS_DISTRO: ${{ inputs.ros_distro }}
       ROSDISTRO_URL: "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
       GIT_FULLNAME: "Rob Woolley"
       GIT_EMAIL: "rob.woolley@windriver.com"
@@ -88,6 +103,7 @@ jobs:
           source ${GITHUB_WORKSPACE}/superflore/venv/bin/activate
           sh scripts/ros-generate-recipes.sh ${ROS_DISTRO}
       - name: Create a pull request
+        if:  ${{ ! inputs.dry_run }} 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -96,9 +112,10 @@ jobs:
           CURRENT_BRANCH=$(git branch --show-current)
           if [ "${CURRENT_BRANCH}" = "superflore/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}" ]; then
             echo "Pushing to superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}"
-            git push origin ${CURRENT_BRANCH}:superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}
+            git branch -M superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}
+            git push origin superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}
             echo "Creating Pull Request"
-            gh pr create --fill
+            gh pr create --title "Superflore Update for $GITHUB_REF_NAME : ${ROS_DISTRO} : ${ROS_DISTRO_RELEASE_DATE_ONLY}" --fill-verbose 
           else
             echo "Warning: The name of the branch didn't match the expected output."
             echo "Branch: ${CURRENT_BRANCH}"
