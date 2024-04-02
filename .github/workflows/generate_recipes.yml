@@ -96,7 +96,7 @@ jobs:
           CURRENT_BRANCH=$(git branch --show-current)
           if [ "${CURRENT_BRANCH}" = "superflore/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}" ]; then
             echo "Pushing to superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}"
-            git push origin ${CURRENT_BRANCH}:superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}
+            git push origin ${CURRENT_BRANCH}
             echo "Creating Pull Request"
             gh pr create --fill
           else
