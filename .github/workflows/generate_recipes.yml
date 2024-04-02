@@ -103,7 +103,7 @@ jobs:
           source ${GITHUB_WORKSPACE}/superflore/venv/bin/activate
           sh scripts/ros-generate-recipes.sh ${ROS_DISTRO}
       - name: Create a pull request
-        if:  ! ${{ inputs.dry_run }} 
+        if:  ${{ ! inputs.dry_run }} 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
