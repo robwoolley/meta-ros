@@ -92,9 +92,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           source ${GITHUB_WORKSPACE}/rosdistro_commit.env
+          cd ${GITHUB_WORKSPACE}/meta-ros
           CURRENT_BRANCH=$(git branch --show-current)
           if [ "${CURRENT_BRANCH}" = "superflore/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE}" ]; then
-            git push origin ${CURRENT_BRANCH}
+            git push origin ${CURRENT_BRANCH} "superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE}"
             gh pr create --fill
           fi      
       - run: echo "🍏 This job's status is ${{ job.status }}."
