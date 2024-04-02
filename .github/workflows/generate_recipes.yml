@@ -112,9 +112,10 @@ jobs:
           CURRENT_BRANCH=$(git branch --show-current)
           if [ "${CURRENT_BRANCH}" = "superflore/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}" ]; then
             echo "Pushing to superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}"
+            git branch -M superflore/$GITHUB_REF_NAME/${ROS_DISTRO}/${ROS_DISTRO_RELEASE_DATE_ONLY}
             git push origin ${CURRENT_BRANCH}
             echo "Creating Pull Request"
-            gh pr create --fill
+            gh pr create --title "Superflore Update for $GITHUB_REF_NAME : ${ROS_DISTRO} : ${ROS_DISTRO_RELEASE_DATE_ONLY}" --fill-verbose 
           else
             echo "Warning: The name of the branch didn't match the expected output."
             echo "Branch: ${CURRENT_BRANCH}"
