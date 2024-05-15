@@ -1,0 +1,96 @@
+header:
+  version: 14
+
+machine: "k26-smk-kr"
+
+repos:
+  xilinx:
+    url: "https://github.com/Xilinx/meta-xilinx.git"
+    path: "layers/meta-xilinx"
+    branch: "master"
+    layers:
+      meta-microblaze:
+      meta-xilinx-bsp:
+      meta-xilinx-contrib:
+      meta-xilinx-core:
+      meta-xilinx-standalone:
+      meta-xilinx-vendor:
+
+  xilinx-tools:
+    url: "https://github.com/Xilinx/meta-xilinx-tools.git"
+    path: "layers/meta-xilinx-tools"
+    branch: "master"
+
+  petalinux:
+    url: "https://github.com/Xilinx/meta-petalinux.git"
+    path: "layers/meta-petalinux"
+    branch: "master"
+
+  xilinx-tsn:
+    url: "https://github.com/Xilinx/meta-xilinx-tsn.git"
+    path: "layers/meta-xilinx-tsn"
+    branch: "master"
+
+  kria:
+    url: "https://github.com/Xilinx/meta-kria.git"
+    path: "layers/meta-kria"
+    branch: "master"
+
+#   vitis:
+#     url: "https://github.com/Xilinx/meta-vitis.git"
+#     path: "layers/meta-vitis"
+#     branch: "master"
+
+  mingw:
+    url: "https://git.yoctoproject.org/meta-mingw.git"
+    path: "layers/meta-mingw"
+    branch: "master"
+
+  virtualization:
+    url: "https://git.yoctoproject.org/git/meta-virtualization"
+    path: "layers/meta-virtualization"
+    branch: "master"
+
+  security:
+    url: "https://git.yoctoproject.org/meta-security"
+    path: "layers/meta-security"
+    branch: "master"
+
+#   openamp:
+#     url: "https://github.com/Xilinx/meta-openamp.git"
+#     path: "layers/meta-openamp"
+#     branch: "master"
+
+  qt5:
+    url: "https://github.com/meta-qt5/meta-qt5.git"
+    path: "layers/meta-qt5"
+    branch: "master"
+
+  aws:
+    url: "https://github.com/aws4embeddedlinux/meta-aws.git"
+    path: "layers/meta-aws"
+    branch: "master"
+
+  jupyter:
+    url: "https://github.com/Xilinx/meta-jupyter.git"
+    path: "layers/meta-jupyter"
+    branch: "master"
+
+  system-controller:
+    url: "https://github.com/Xilinx/meta-system-controller.git"
+    path: "layers/meta-system-controller"
+    branch: "master"
+
+local_conf_header:
+  k26-smk-kr: |
+    # Set DISTRO to petalinux to ensure the PetaLinux configuration is included
+    DISTRO = "petalinux"
+
+    # Set DISTRO_FEATURES to enable latent features in meta-virtualization
+    DISTRO_FEATURES:append = " virtualization"
+
+    # Set DISTRO_FEATURES to enable latent features in meta-security
+    DISTRO_FEATURES:append = " security"
+
+    # Set the accepted license flags to allow the use of xilinx software
+    LICENSE_FLAGS_ACCEPTED = "xilinx"

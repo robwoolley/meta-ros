@@ -6,20 +6,28 @@ defaults:
     branch: "scarthgap"
 
 repos:
-  openembedded-core:
-    url: "https://github.com/openembedded/openembedded-core.git"
-    commit: "e38a0f1a5e515651173b1aa21d38f2b3924de8b2"
-    path: "layers/openembedded-core"
+  poky:
+    url: "https://github.com/yoctoproject/poky.git"
+    path: "layers/meta-poky"
     layers:
       meta:
+      meta-poky:
+      meta-yocto-bsp:
 
-  bitbake:
-    url: "https://github.com/openembedded/bitbake.git"
-    branch: "2.8"
-    commit: "8f90d10f9efc9a32e13f6bd031992aece79fe7cc"
-    path: "layers/bitbake"
-    layers:
-      bitbake: "excluded"
+#   openembedded-core:
+#     url: "https://github.com/openembedded/openembedded-core.git"
+#     commit: "e38a0f1a5e515651173b1aa21d38f2b3924de8b2"
+#     path: "layers/openembedded-core"
+#     layers:
+#       meta:
+
+#   bitbake:
+#     url: "https://github.com/openembedded/bitbake.git"
+#     branch: "2.8"
+#     commit: "8f90d10f9efc9a32e13f6bd031992aece79fe7cc"
+#     path: "layers/bitbake"
+#     layers:
+#       bitbake: "excluded"
 
   meta-openembedded:
     url: "https://github.com/openembedded/meta-openembedded.git"

@@ -6,6 +6,12 @@ defaults:
     branch: "master"
 
 repos:
+  poky:
+    url: "https://github.com/yoctoproject/poky.git"
+    path: "layers/meta-poky"
+    layers:
+      meta-poky:
+
   openembedded-core:
     url: "https://github.com/openembedded/openembedded-core.git"
     path: "layers/openembedded-core"

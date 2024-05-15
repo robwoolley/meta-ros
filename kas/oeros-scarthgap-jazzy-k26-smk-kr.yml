@@ -1,0 +1,12 @@
+header:
+  version: 14
+  includes:
+    - yocto/scarthgap.yml
+    - ros2/jazzy.yml
+    - machine/k26-smk-kr.yml
+    - common.yml
+
+local_conf_header:
+  ros-distro: |
+    # Set ROS_DISTRO to jazzy to override petalinux.conf
+    ROS_DISTRO = "jazzy"
