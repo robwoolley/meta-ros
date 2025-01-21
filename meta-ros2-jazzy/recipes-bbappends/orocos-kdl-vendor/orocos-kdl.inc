@@ -7,6 +7,6 @@ SRC_URI = " \
     git://github.com/orocos/orocos_kinematics_dynamics.git;protocol=https;name=orocos-kdl;destsuffix=git/orocos-kdl;branch=master \
     "
 
-SRCREV_release = "f1bbaed1b5190dbfefd08ca445e53d20d1a0066e"
-SRCREV_orocos-kdl = "507de66205e14b12c8c65f25eafc05c4dc66e21e"
+SRCREV_release = "adca6201616af928533d70faea6042fe0239e898"
+SRCREV_orocos-kdl = "ce4bcb65a050615b6d7f21bc60fbb2656515791b"
 SRCREV_FORMAT = "release_orocos-kdl"
