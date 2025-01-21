@@ -28,6 +28,7 @@ ROS_SUPERFLORE_GENERATED_BUILDTOOLS += " \
     ament-lint-native \
     ament-cmake-cpplint-native \
     ament-cmake-uncrustify-native \
+    ament-index-cpp-native \
     composition-interfaces-native \
     cyclonedds-native \
     domain-coordinator-native \
@@ -74,6 +75,7 @@ ROS_SUPERFLORE_GENERATED_BUILDTOOLS += " \
     rosidl-core-runtime-native \
     rosidl-default-runtime-native \
     rosidl-dynamic-typesupport-native \
+    rosidl-dynamic-typesupport-fastrtps-native \
     rosidl-generator-type-description-native \
     rosidl-parser-native \
     rosidl-runtime-c-native \
@@ -87,6 +89,7 @@ ROS_SUPERFLORE_GENERATED_BUILDTOOLS += " \
     spdlog-vendor-native \
     std-msgs-native \
     tracetools-native \
+    type-description-interfaces-native \
     uncrustify-vendor-native \
     unique-identifier-msgs-native \
 "
