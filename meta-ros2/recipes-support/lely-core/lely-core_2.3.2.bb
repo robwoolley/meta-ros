@@ -4,7 +4,8 @@ DESCRIPTION = "A collection of C and C++ libraries and tools, providing hih-perf
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
-SRC_URI = "git://gitlab.com/lely_industries/lely-core.git;protocol=https;branch=v2.3"
+SRC_URI = "git://gitlab.com/lely_industries/lely-core.git;protocol=https;branch=v2.3 \
+           file://0001-Fix-dcf-tools.patch"
 
 PV = "2.3.2+git${SRCPV}"
 SRCREV = "7824cbb2ac08d091c4fa2fb397669b938de9e3f5"
@@ -15,7 +16,7 @@ inherit pkgconfig autotools setuptools3-base
 
 DEPENDS += "python3-setuptools-native python3-wheel-native"
 
-EXTRA_OECONF += " --disable-cython --disable-tests --disable-python2"
+EXTRA_OECONF += " --disable-cython --disable-tests"
 
 # include/lely/coapp/device.hpp:1003:3: error: 'virtual void lely::canopen::Device::OnWrite(uint16_t, uint8_t)' was hidden [-Werror=overloaded-virtual=]
 CXXFLAGS += "-Wno-error=overloaded-virtual"
@@ -190,11 +191,18 @@ FILES:python3-lely-io = " \
 # QA Issue: lely-core: .../dcf2dev maximum shebang size exceeded, the maximum size is 128.
 #           lely-core: .../dcfchk maximum shebang size exceeded, the maximum size is 128.
 #           lely-core: .../dcfgen maximum shebang size exceeded, the maximum size is 128. [shebang-size]
+# ERROR: lely-core-2.3.2+git-r0 do_package_qa: QA Issue: File /usr/lib/python3.13/site-packages/dcfgen/__pycache__/__init__.cpython-313.pyc in package lely-core contains reference to TMPDIR [buildpaths]
 do_install:append() {
     # Modify the Python scripts to use the runtime path to Python 
     sed -i -e '1s|^#!.*|#!/usr/bin/env python3|' ${D}${bindir}/dcf2dev
     sed -i -e '1s|^#!.*|#!/usr/bin/env python3|' ${D}${bindir}/dcfchk
     sed -i -e '1s|^#!.*|#!/usr/bin/env python3|' ${D}${bindir}/dcfgen
+
+    for FILE in ${D}${PYTHON_SITEPACKAGES_DIR}/dcf/*.py \
+                ${D}${PYTHON_SITEPACKAGES_DIR}/dcf2dev/*.py \
+                ${D}${PYTHON_SITEPACKAGES_DIR}/dcfgen/*.py; do \
+        nativepython3 -mcompileall -s ${D} $FILE; \
+    done
 }
 
 BBCLASSEXTEND = "native nativesdk"
