@@ -108,7 +108,8 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/meta-ros
           ROS_SYNC_ID=$(git rev-parse HEAD)
-          sh scripts/rename-bbappend.sh ${ROS_DISTRO} ${ROS_SYNC_ID}
+          echo sh scripts/rename-bbappend.sh ${ROS_DISTRO} ${ROS_SYNC_ID}
+          bash -x scripts/rename-bbappend.sh ${ROS_DISTRO} ${ROS_SYNC_ID}
       - name: Create a pull request
         if:  ${{ ! inputs.dry_run }} 
         env:
