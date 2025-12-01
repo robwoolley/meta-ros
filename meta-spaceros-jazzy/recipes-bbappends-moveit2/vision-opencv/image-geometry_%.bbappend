@@ -2,6 +2,9 @@
 
 LICENSE = "BSD-3-Clause"
 
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
+SRC_URI += "file://add-cstdint.patch"
+
 ROS_BUILD_DEPENDS += " \
     service-msgs \
 "

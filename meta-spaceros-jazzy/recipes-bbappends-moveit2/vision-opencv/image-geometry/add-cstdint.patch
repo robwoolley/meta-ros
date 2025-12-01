@@ -1,0 +1,24 @@
+Add cstdint for GCC15
+
+Upstream-Status: Pending
+
+Signed-off-by: Rob Woolley <rob.woolley@windriver.com>
+
+diff --git a/src/pinhole_camera_model.cpp b/src/pinhole_camera_model.cpp
+index b3c9221..4442b67 100644
+--- a/src/pinhole_camera_model.cpp
++++ b/src/pinhole_camera_model.cpp
+@@ -1,3 +1,4 @@
++#include <cstdint>
+ #include "image_geometry/pinhole_camera_model.hpp"
+ #include <sensor_msgs/distortion_models.hpp>
+ 
+diff --git a/src/stereo_camera_model.cpp b/src/stereo_camera_model.cpp
+index 14ea37c..31c9405 100644
+--- a/src/stereo_camera_model.cpp
++++ b/src/stereo_camera_model.cpp
+@@ -1,3 +1,4 @@
++#include <cstdint>
+ #include "image_geometry/stereo_camera_model.hpp"
+ 
+ namespace image_geometry {
