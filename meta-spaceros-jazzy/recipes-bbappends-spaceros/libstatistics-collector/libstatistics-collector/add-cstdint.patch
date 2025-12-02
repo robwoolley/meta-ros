@@ -1,0 +1,18 @@
+Add cstdint for GCC15
+
+Upstream-Status: Pending
+
+Signed-off-by: Rob Woolley <rob.woolley@windriver.com>
+
+diff --git a/src/libstatistics_collector/collector/generate_statistics_message.cpp b/src/libstatistics_collector/collector/generate_statistics_message.cpp
+index 6281681..9f93333 100644
+--- a/src/libstatistics_collector/collector/generate_statistics_message.cpp
++++ b/src/libstatistics_collector/collector/generate_statistics_message.cpp
+@@ -12,6 +12,7 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
++#include <cstdint>
+ #include "libstatistics_collector/collector/generate_statistics_message.hpp"
+ 
+ #include <string>
