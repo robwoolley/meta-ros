@@ -186,6 +186,25 @@ SKIP_RECIPE[webots-ros2-universal-robot] ?= "${@bb.utils.contains_any('ROS_WORLD
 SKIP_RECIPE[wiimote] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cwiid', 'Depends on unavailable ROS_UNRESOLVED_DEP-cwiid-dev', '', d)}"
 SKIP_RECIPE[zenoh-bridge-dds] ?= "${@bb.utils.contains_any('ROS_WORLD_SKIP_GROUPS', ['clang', 'cargo'], 'clang: depends on clang which requires meta-clang layer; cargo: depends on cargo which requires meta-rust layer (or oe-core[honister] or newer)', '', d)}"
 
+SKIP_RECIPE[ros-industrial-cmake-boilerplate] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'iwyu', 'Depends on unavailable ROS_UNRESOLVED_DEP-iwyu', '', d)}"
+SKIP_RECIPE[stomp] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'iwyu', 'iwyu: depends on ros-industrial-cmake-boilerplate which depends on unavailable ROS_UNRESOLVED_DEP-iwyu', '', d)}"
+
+SKIP_RECIPE[cras-cpp-common] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'language-pack-en', 'Depends on unavailable ROS_UNRESOLVED_DEP-language-pack-en', '', d)}"
+SKIP_RECIPE[cras-topic-tools] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'language-pack-en', 'language-pack-en: depends on cras-cpp-common which depends on unavailable ROS_UNRESOLVED_DEP-language-pack-en', '', d)}"
+SKIP_RECIPE[cras-bag-tools] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'python3-marisa', 'Depends on unavailable ROS_UNRESOLVED_DEP-python3-marisa', '', d)}"
+
+SKIP_RECIPE[proxsuite] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'matio', 'Depends on unavailable ROS_UNRESOLVED_DEP-matio', '', d)}"
+
+SKIP_RECIPE[cuda-buffer] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
+SKIP_RECIPE[cuda-buffer-backend] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: depends on cuda-buffer which depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
+SKIP_RECIPE[robot-arm-demo] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda-dev', '', d)}"
+
+SKIP_RECIPE[moveit-hybrid-planning] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'position-controllers', 'Depends on unavailable ROS_UNRESOLVED_DEP-position-controllers', '', d)}"
+SKIP_RECIPE[moveit-resources-fanuc-moveit-config] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'position-controllers', 'Depends on unavailable ROS_UNRESOLVED_DEP-position-controllers', '', d)}"
+SKIP_RECIPE[mujoco-ros2-control-demos] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'position-controllers', 'Depends on unavailable ROS_UNRESOLVED_DEP-position-controllers', '', d)}"
+
+SKIP_RECIPE[replay-testing] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'python3-junitparser', 'Depends on unavailable ROS_UNRESOLVED_DEP-python3-junitparser', '', d)}"
+
 # Renamed to fuse-ros in recipes-bbappends/fuse to avoid conflict with
 # meta-filesystems/recipes-support/fuse/fuse_2.9.9.bb
 # And renamed fuse-doc to fuse-ros-doc to avoid conflict with PN-doc package created by fuse recipe

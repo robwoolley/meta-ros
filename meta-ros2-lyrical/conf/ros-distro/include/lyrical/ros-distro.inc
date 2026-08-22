@@ -226,6 +226,29 @@ ROS_WORLD_SKIP_GROUPS += "nanobind"
 
 ROS_WORLD_SKIP_GROUPS += "gripper"
 
+# packages (like ros-industrial-cmake-boilerplate) that use iwyu (include-what-you-use),
+# not packaged in this layer set
+ROS_WORLD_SKIP_GROUPS += "iwyu"
+
+# packages (like cras-cpp-common) that depend on the Ubuntu language-pack-en package,
+# not applicable to OE locale handling
+ROS_WORLD_SKIP_GROUPS += "language-pack-en"
+
+# packages (like cras-bag-tools) that depend on python3-marisa, not packaged in this layer set
+ROS_WORLD_SKIP_GROUPS += "python3-marisa"
+
+# packages (like proxsuite) that depend on matio, not packaged in this layer set
+ROS_WORLD_SKIP_GROUPS += "matio"
+
+# packages that depend on the NVIDIA CUDA toolkit, not available without a vendor BSP layer
+ROS_WORLD_SKIP_GROUPS += "cuda"
+
+# packages that depend on position-controllers, which has no recipe in any meta-ros2 distro
+ROS_WORLD_SKIP_GROUPS += "position-controllers"
+
+# packages (like replay-testing) that depend on python3-junitparser, not packaged in this layer set
+ROS_WORLD_SKIP_GROUPS += "python3-junitparser"
+
 # Must use a _pn- override in this file to override the ROS_BUILD_TYPE of a generated recipe,
 # because we need to set this variable before the "inherit" line in the recipe is parsed,
 # and having it in a .bbappend sets it too late.
@@ -464,3 +487,68 @@ ROS_UNRESOLVED_DEP-python3-ujson = "python3-ujson"
 ROS_UNRESOLVED_DEP-python3-validators = "python3-validators"
 ROS_UNRESOLVED_DEP-rsyslog = "rsyslog"
 ROS_UNRESOLVED_DEP-zstd-vendor = "zstd"
+
+ROS_UNRESOLVED_DEP-libavahi-client-dev = "avahi"
+ROS_UNRESOLVED_DEP-libflatbuffers-dev = "flatbuffers"
+ROS_UNRESOLVED_DEP-libgtest-dev = "googletest"
+ROS_UNRESOLVED_DEP-libqt6-multimedia = "qtmultimedia"
+ROS_UNRESOLVED_DEP-qml6-module-qtmultimedia = "qtmultimedia"
+ROS_UNRESOLVED_DEP-qml6-module-qt-labs-qmlmodels = "qtdeclarative"
+ROS_UNRESOLVED_DEP-robin-map-dev = "robin-map"
+ROS_UNRESOLVED_DEP-tl-expected = "tl-expected"
+ROS_UNRESOLVED_DEP-libcpp-httplib-dev = "cpp-httplib"
+
+# Ported from meta-ros2-kilted (no release/lyrical branch exists upstream yet)
+ROS_UNRESOLVED_DEP-libpointmatcher = "libpointmatcher"
+ROS_UNRESOLVED_DEP-python3-pytest-asyncio = "python3-pytest-asyncio"
+ROS_UNRESOLVED_DEP-python3-types-pyyaml = "python3-types-pyyaml"
+
+# meta-qt5 is not part of this distro's layer set; recipes needing these are
+# already excluded via the 'qt5' skip group
+ROS_UNRESOLVED_DEP-libqt5-multimedia = ""
+ROS_UNRESOLVED_DEP-pyqt5-dev-tools = ""
+
+# rti-connext-dds is proprietary and not available; recipes needing it are
+# already excluded via the 'connext' skip group
+ROS_UNRESOLVED_DEP-rti-connext-dds-7.7.0 = ""
+
+# ROS_TEST_DEPENDS only (see REP-0149); no recipe provides xvfb in this layer set
+ROS_UNRESOLVED_DEP-xvfb = ""
+
+# The only recipes needing these are already unconditionally skipped via the
+# existing 'cwiid'/'libspnav' groups (wiimote, spacenav)
+ROS_UNRESOLVED_DEP-cwiid = ""
+ROS_UNRESOLVED_DEP-cwiid-dev = ""
+ROS_UNRESOLVED_DEP-libspnav-dev = ""
+ROS_UNRESOLVED_DEP-spacenavd = ""
+
+# tracetools-analysis/ros2trace-analysis are already unconditionally skipped
+# via the existing 'babeltrace-python' group
+ROS_UNRESOLVED_DEP-jupyter-notebook = ""
+
+# webots-ros2-importer is already unconditionally skipped via the existing
+# 'webots-python-modules' group
+ROS_UNRESOLVED_DEP-python3-collada = ""
+
+# No recipe available in this layer set; recipes needing these are skipped
+# via the new 'iwyu'/'language-pack-en'/'python3-marisa'/'matio'/
+# 'python3-junitparser' groups above
+ROS_UNRESOLVED_DEP-iwyu = ""
+ROS_UNRESOLVED_DEP-language-pack-en = ""
+ROS_UNRESOLVED_DEP-python3-marisa = ""
+ROS_UNRESOLVED_DEP-matio = ""
+ROS_UNRESOLVED_DEP-python3-junitparser = ""
+
+# The generated libcamera recipe (the only one that referenced libyuv-dev)
+# is BBMASKed below in favor of the real recipe in meta-multimedia, which
+# has no libyuv dependency
+ROS_UNRESOLVED_DEP-libyuv-dev = ""
+
+# NVIDIA CUDA toolkit is not available without a vendor BSP layer; recipes
+# needing it are skipped via the new 'cuda' group above
+ROS_UNRESOLVED_DEP-nvidia-cuda = ""
+ROS_UNRESOLVED_DEP-nvidia-cuda-dev = ""
+
+# No recipe in any meta-ros2 distro provides this; recipes needing it are
+# skipped via the new 'position-controllers' group above
+ROS_UNRESOLVED_DEP-position-controllers = ""
