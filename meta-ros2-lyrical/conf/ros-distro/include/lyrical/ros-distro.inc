@@ -229,6 +229,13 @@ ROS_WORLD_SKIP_GROUPS += "gripper"
 # packages that depend on the NVIDIA CUDA toolkit, not available without a vendor BSP layer
 ROS_WORLD_SKIP_GROUPS += "cuda"
 
+# packages (like sound-play) that depend on festival; a recipe for festival
+# exists in meta-ros1, but it also needs its own speech-tools dependency
+# ported, fetches speech databases from an old CMU server, and needs GCC
+# compatibility patches verified against this toolchain -- not reasonable
+# effort for this one optional TTS backend
+ROS_WORLD_SKIP_GROUPS += "festival"
+
 # Must use a _pn- override in this file to override the ROS_BUILD_TYPE of a generated recipe,
 # because we need to set this variable before the "inherit" line in the recipe is parsed,
 # and having it in a .bbappend sets it too late.
