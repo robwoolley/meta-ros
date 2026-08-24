@@ -226,28 +226,8 @@ ROS_WORLD_SKIP_GROUPS += "nanobind"
 
 ROS_WORLD_SKIP_GROUPS += "gripper"
 
-# packages (like ros-industrial-cmake-boilerplate) that use iwyu (include-what-you-use),
-# not packaged in this layer set
-ROS_WORLD_SKIP_GROUPS += "iwyu"
-
-# packages (like cras-cpp-common) that depend on the Ubuntu language-pack-en package,
-# not applicable to OE locale handling
-ROS_WORLD_SKIP_GROUPS += "language-pack-en"
-
-# packages (like cras-bag-tools) that depend on python3-marisa, not packaged in this layer set
-ROS_WORLD_SKIP_GROUPS += "python3-marisa"
-
-# packages (like proxsuite) that depend on matio, not packaged in this layer set
-ROS_WORLD_SKIP_GROUPS += "matio"
-
 # packages that depend on the NVIDIA CUDA toolkit, not available without a vendor BSP layer
 ROS_WORLD_SKIP_GROUPS += "cuda"
-
-# packages that depend on position-controllers, which has no recipe in any meta-ros2 distro
-ROS_WORLD_SKIP_GROUPS += "position-controllers"
-
-# packages (like replay-testing) that depend on python3-junitparser, not packaged in this layer set
-ROS_WORLD_SKIP_GROUPS += "python3-junitparser"
 
 # Must use a _pn- override in this file to override the ROS_BUILD_TYPE of a generated recipe,
 # because we need to set this variable before the "inherit" line in the recipe is parsed,
@@ -530,9 +510,11 @@ ROS_UNRESOLVED_DEP-jupyter-notebook = ""
 # 'webots-python-modules' group
 ROS_UNRESOLVED_DEP-python3-collada = ""
 
-# No recipe available in this layer set; recipes needing these are skipped
-# via the new 'iwyu'/'language-pack-en'/'python3-marisa'/'matio'/
-# 'python3-junitparser' groups above
+# No recipe available in this layer set for any of these, but each is only
+# ever referenced from a ROS_TEST_DEPENDS (REP-0149, informational-only) or
+# ROS_EXEC_DEPENDS (runtime-only, not needed to build) block, so mapping to
+# empty is sufficient -- no SKIP_RECIPE needed, the referencing recipes build
+# fine without them
 ROS_UNRESOLVED_DEP-iwyu = ""
 ROS_UNRESOLVED_DEP-language-pack-en = ""
 ROS_UNRESOLVED_DEP-python3-marisa = ""
@@ -549,6 +531,7 @@ ROS_UNRESOLVED_DEP-libyuv-dev = ""
 ROS_UNRESOLVED_DEP-nvidia-cuda = ""
 ROS_UNRESOLVED_DEP-nvidia-cuda-dev = ""
 
-# No recipe in any meta-ros2 distro provides this; recipes needing it are
-# skipped via the new 'position-controllers' group above
+# No recipe in any meta-ros2 distro provides this, but it's only ever
+# referenced from ROS_EXEC_DEPENDS (runtime-only); mapping to empty is
+# sufficient, no SKIP_RECIPE needed
 ROS_UNRESOLVED_DEP-position-controllers = ""
