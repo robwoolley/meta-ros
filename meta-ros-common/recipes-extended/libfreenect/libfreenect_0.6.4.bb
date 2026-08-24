@@ -14,6 +14,10 @@ inherit cmake
 #force libs always into /usr/lib, even when compiling on 64bit arch
 ##EXTRA_OECMAKE += " -DLIB_SUFFIX=''"
 
+# Upstream's cmake_minimum_required() predates 3.5, which CMake >= 4.0 no
+# longer supports at all
+EXTRA_OECMAKE += "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+
 FILES:${PN} += "\
     ${libdir}/fakenect/*.so.* \
     ${datadir}/fwfetcher.py \
