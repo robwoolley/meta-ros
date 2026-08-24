@@ -20,5 +20,6 @@ RDEPENDS:${PN} += "\
     ${@ 'packagegroup-ros-world-iron' if 'ros2-iron-layer' in BBFILE_COLLECTIONS.split() else '' } \
     ${@ 'packagegroup-ros-world-jazzy' if 'ros2-jazzy-layer' in BBFILE_COLLECTIONS.split() else '' } \
     ${@ 'packagegroup-ros-world-kilted' if 'ros2-kilted-layer' in BBFILE_COLLECTIONS.split() else '' } \
+    ${@ 'packagegroup-ros-world-lyrical' if 'ros2-lyrical-layer' in BBFILE_COLLECTIONS.split() else '' } \
     ${@ 'packagegroup-ros-world-rolling' if 'ros2-rolling-layer' in BBFILE_COLLECTIONS.split() else '' } \
 "
