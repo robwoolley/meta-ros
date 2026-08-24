@@ -1032,3 +1032,10 @@ RDEPENDS:${PN}:remove = "mola-lidar-odometry"
 
 # Depends on muparser, which is only available in meta-qt5-extra
 RDEPENDS:${PN}:remove = "parameter-expression"
+
+RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', '${ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_CUDA}', '', d)}"
+ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_CUDA = " \
+    cuda-buffer \
+    cuda-buffer-backend \
+    robot-arm-demo \
+"
