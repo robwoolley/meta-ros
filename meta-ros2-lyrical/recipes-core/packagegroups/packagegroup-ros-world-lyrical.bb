@@ -416,6 +416,8 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_META_QT5 = " \
     polygon-rviz-plugins \
     python-qt-binding \
     py-trees-js \
+    py-trees-ros-tutorials \
+    py-trees-ros-viewer \
     qt-dotgraph \
     qt-gui \
     qt-gui-app \
@@ -514,6 +516,7 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_META_QT5 = " \
     urdf-tutorial \
     vision-msgs-layers \
     webots-ros2-epuck \
+    yasmin-editor \
     webots-ros2-tiago \
     webots-ros2-universal-robot \
 "
