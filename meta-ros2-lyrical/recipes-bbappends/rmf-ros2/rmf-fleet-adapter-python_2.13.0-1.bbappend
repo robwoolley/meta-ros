@@ -8,8 +8,5 @@ DEPENDS += "\
 
 FILES:${PN} += "${libdir}/python"
 
-FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
-SRC_URI += "file://0001-CMakeLists-search-for-Python3-Development.patch"
-
 # Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE)
 inherit pkgconfig

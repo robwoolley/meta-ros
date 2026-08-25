@@ -8,7 +8,7 @@ Index: git/gtsam/slam/dataset.cpp
 ===================================================================
 --- git.orig/gtsam/slam/dataset.cpp
 +++ git/gtsam/slam/dataset.cpp
-@@ -64,7 +64,6 @@ string findExampleDataFile(const string
+@@ -72,7 +72,6 @@ string findExampleDataFile(const string
    vector<string> rootsToSearch;
  
    // Constants below are defined by CMake, see gtsam/gtsam/CMakeLists.txt
@@ -16,7 +16,7 @@ Index: git/gtsam/slam/dataset.cpp
    rootsToSearch.push_back(GTSAM_INSTALLED_DATASET_DIR);
  
    // Search for filename as given, and with .graph and .txt extensions
-@@ -87,8 +86,7 @@ string findExampleDataFile(const string
+@@ -95,8 +94,7 @@ string findExampleDataFile(const string
    // If we did not return already, then we did not find the file
    throw invalid_argument(
        "gtsam::findExampleDataFile could not find a matching "
