@@ -1,6 +1,7 @@
 Use the GTest library provided by the system instead of including
 a private copy.
 
+Upstream-Status: Inappropriate [oe specific]
 Signed-off-by: Rob Woolley <rob.woolley@windriver.com>
 
 Index: git/CMakeLists.txt
