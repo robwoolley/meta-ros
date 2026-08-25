@@ -18,6 +18,13 @@ require conf/ros-distro/include/lyrical/ros-distro-recipe-blacklist.inc
 require conf/ros-distro/include/lyrical/ros-distro-preferred-versions.inc
 require conf/ros-distro/include/lyrical/ros-distro-preferred-providers.inc
 
+# Many upstream ROS/vendored CMakeLists.txt files predate CMake 3.5 in their
+# cmake_minimum_required(), which CMake >= 4.0 (in this toolchain: 4.3.1) no
+# longer supports at all ("Compatibility with CMake < 3.5 has been
+# removed"). This is a no-op for any recipe that doesn't need it, and only
+# takes effect for recipes that inherit cmake in the first place.
+EXTRA_OECMAKE:append = " -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+
 # Override settings from generated/superflore-ros-distro.inc here.
 
 # Since superflore doesn't know when it's generating a recipe that it will be for a build tool, it can't know that what's in
