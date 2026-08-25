@@ -1040,6 +1040,7 @@ RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', '
 ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_CUDA = " \
     cuda-buffer \
     cuda-buffer-backend \
+    cuda-buffer-backend-msgs \
     robot-arm-demo \
 "
 

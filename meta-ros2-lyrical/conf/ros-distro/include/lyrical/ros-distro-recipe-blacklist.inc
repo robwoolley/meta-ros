@@ -193,6 +193,7 @@ SKIP_RECIPE[zenoh-bridge-dds] ?= "${@bb.utils.contains_any('ROS_WORLD_SKIP_GROUP
 
 SKIP_RECIPE[cuda-buffer] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
 SKIP_RECIPE[cuda-buffer-backend] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: depends on cuda-buffer which depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
+SKIP_RECIPE[cuda-buffer-backend-msgs] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: part of the unbuildable cuda-buffer family; also has its own native/target library linking bug (links recipe-sysroot-native librosidl_runtime_c.so into a target build)', '', d)}"
 SKIP_RECIPE[robot-arm-demo] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda-dev', '', d)}"
 
 # Renamed to fuse-ros in recipes-bbappends/fuse to avoid conflict with
