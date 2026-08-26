@@ -14,3 +14,10 @@ SRCREV = "142b6f62cb5eab87a99b3a21e546c5ef5bca5439"
 inherit cmake
 
 EXTRA_OECMAKE += "-DBUILD_SHARED_LIBS=ON"
+
+# QA Issue: libtinsConfig.cmake / libtinsTargets.cmake contain references to TMPDIR [buildpaths]
+do_install:append() {
+    sed -i -e "s#${RECIPE_SYSROOT}##g" \
+        ${D}${libdir}/cmake/libtins/libtinsConfig.cmake \
+        ${D}${libdir}/cmake/libtins/libtinsTargets.cmake
+}
