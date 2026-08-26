@@ -43,3 +43,11 @@ inherit pkgconfig
 
 # collision_common.cpp:578:40: error: ISO C++ forbids declaration of 'type name' with no type [-fpermissive]
 # CXXFLAGS:append = " -fpermissive"
+
+# moveit-core hardcodes an octomap upper version bound (<1.10.0) that
+# predates this layer set's octomap (1.10.0); relax it rather than pin an
+# older octomap system-wide.
+do_configure:prepend() {
+    sed -i -e 's/find_package(octomap 1.9.7...<1.10.0 REQUIRED)/find_package(octomap 1.9.7 REQUIRED)/' \
+        ${S}/CMakeLists.txt
+}
