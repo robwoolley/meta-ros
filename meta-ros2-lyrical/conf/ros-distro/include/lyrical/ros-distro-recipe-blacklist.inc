@@ -208,6 +208,12 @@ SKIP_RECIPE[zenoh-bridge-dds] ?= "${@bb.utils.contains_any('ROS_WORLD_SKIP_GROUP
 SKIP_RECIPE[cuda-buffer] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
 SKIP_RECIPE[cuda-buffer-backend] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: depends on cuda-buffer which depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
 SKIP_RECIPE[cuda-buffer-backend-msgs] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: part of the unbuildable cuda-buffer family; also has its own native/target library linking bug (links recipe-sysroot-native librosidl_runtime_c.so into a target build)', '', d)}"
+SKIP_RECIPE[tensor-msgs] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: part of the rosidl-buffer-backends family; same native/target library linking bug as cuda-buffer-backend-msgs', '', d)}"
+SKIP_RECIPE[libtorch-vendor] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: part of the rosidl-buffer-backends family; same native/target library linking bug as cuda-buffer-backend-msgs', '', d)}"
+SKIP_RECIPE[torch-conversions] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: part of the rosidl-buffer-backends family; same native/target library linking bug as cuda-buffer-backend-msgs', '', d)}"
+
+SKIP_RECIPE[robotraconteur] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'robotraconteur', 'robotraconteur: CMake FindPython3 native/target version mismatch during cross-compilation', '', d)}"
+SKIP_RECIPE[robotraconteur-companion] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'robotraconteur', 'robotraconteur: depends on robotraconteur', '', d)}"
 SKIP_RECIPE[robot-arm-demo] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda-dev', '', d)}"
 
 # Renamed to fuse-ros in recipes-bbappends/fuse to avoid conflict with

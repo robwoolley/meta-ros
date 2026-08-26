@@ -233,7 +233,13 @@ ROS_WORLD_SKIP_GROUPS += "nanobind"
 
 ROS_WORLD_SKIP_GROUPS += "gripper"
 
-# packages that depend on the NVIDIA CUDA toolkit, not available without a vendor BSP layer
+# packages that depend on the NVIDIA CUDA toolkit, not available without a vendor BSP layer.
+# Also covers the rest of the rosidl-buffer-backends family (tensor-msgs,
+# libtorch-vendor, torch-conversions): even though they don't need CUDA
+# themselves, they hit the same "links recipe-sysroot-native's
+# librosidl_runtime_c.so into a target build" architecture-mismatch bug as
+# cuda-buffer-backend-msgs, and nothing outside this 6-package family
+# depends on them.
 ROS_WORLD_SKIP_GROUPS += "cuda"
 
 # packages in the lanelet2 family: lanelet2-core needs Boost's "system"
@@ -245,6 +251,13 @@ ROS_WORLD_SKIP_GROUPS += "cuda"
 # for libraries it finds a compiled .so for. Fixing this properly belongs in
 # oe-core's boost recipe, not here.
 ROS_WORLD_SKIP_GROUPS += "lanelet2"
+
+# robotraconteur's CMake FindPython3 detects a mismatched native (3.13.5)
+# vs target (3.14) Python version during cross-compilation and can't
+# correlate the target's Development/NumPy headers (which are genuinely
+# present) against it. Needs real CMake toolchain investigation to fix
+# properly; only one other recipe depends on it.
+ROS_WORLD_SKIP_GROUPS += "robotraconteur"
 
 # packages (like sound-play) that depend on festival; a recipe for festival
 # exists in meta-ros1, but it also needs its own speech-tools dependency

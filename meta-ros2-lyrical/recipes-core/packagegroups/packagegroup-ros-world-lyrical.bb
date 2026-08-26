@@ -1042,6 +1042,9 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_CUDA = " \
     cuda-buffer-backend \
     cuda-buffer-backend-msgs \
     robot-arm-demo \
+    tensor-msgs \
+    libtorch-vendor \
+    torch-conversions \
 "
 
 RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'festival', '${ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_FESTIVAL}', '', d)}"
@@ -1064,4 +1067,10 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_LANELET2 = " \
     lanelet2-maps \
     autoware-lanelet2-extension \
     autoware-lanelet2-extension-python \
+"
+
+RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'robotraconteur', '${ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_ROBOTRACONTEUR}', '', d)}"
+ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_ROBOTRACONTEUR = " \
+    robotraconteur \
+    robotraconteur-companion \
 "
