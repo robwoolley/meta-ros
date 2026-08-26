@@ -1048,3 +1048,20 @@ RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'festival
 ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_FESTIVAL = " \
     sound-play \
 "
+
+RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'lanelet2', '${ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_LANELET2}', '', d)}"
+ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_LANELET2 = " \
+    lanelet2 \
+    lanelet2-core \
+    lanelet2-io \
+    lanelet2-projection \
+    lanelet2-traffic-rules \
+    lanelet2-routing \
+    lanelet2-validation \
+    lanelet2-matching \
+    lanelet2-python \
+    lanelet2-examples \
+    lanelet2-maps \
+    autoware-lanelet2-extension \
+    autoware-lanelet2-extension-python \
+"

@@ -236,6 +236,16 @@ ROS_WORLD_SKIP_GROUPS += "gripper"
 # packages that depend on the NVIDIA CUDA toolkit, not available without a vendor BSP layer
 ROS_WORLD_SKIP_GROUPS += "cuda"
 
+# packages in the lanelet2 family: lanelet2-core needs Boost's "system"
+# component via mrt_cmake_modules' AutoDeps machinery, but this layer set's
+# boost recipe (1.90.0) doesn't stage a boost_system-1.90.0 CMake package
+# config at all (every other boost_<lib> component is present) -- modern
+# Boost made boost_system header-only/interface-only, and this project's
+# boost recipe's packaging logic only generates per-component CMake configs
+# for libraries it finds a compiled .so for. Fixing this properly belongs in
+# oe-core's boost recipe, not here.
+ROS_WORLD_SKIP_GROUPS += "lanelet2"
+
 # packages (like sound-play) that depend on festival; a recipe for festival
 # exists in meta-ros1, but it also needs its own speech-tools dependency
 # ported, fetches speech databases from an old CMU server, and needs GCC
@@ -333,6 +343,13 @@ DEPENDS:append:pn-mrpt-tfest = " ament-cmake-native"
 DEPENDS:append:pn-mrpt-topography = " ament-cmake-native"
 DEPENDS:append:pn-mrpt-typemeta = " ament-cmake-native"
 DEPENDS:append:pn-mrpt-viz = " ament-cmake-native"
+
+# mrpt's pybind11 extension modules get pre-stripped by the build tooling
+# itself before bitbake's own do_package strip step runs, which do_package_qa
+# otherwise flags as [already-stripped] ("this will prevent future
+# debugging"). Debug symbols for a Python C-extension binding module aren't
+# meaningfully debuggable via the usual dbg-package workflow anyway.
+INSANE_SKIP:mrpt-random += "already-stripped"
 
 # These interface (*-msgs) packages RDEPEND on rosidl-default-runtime (per
 # their package.xml exec_depend, matching upstream convention) but not
