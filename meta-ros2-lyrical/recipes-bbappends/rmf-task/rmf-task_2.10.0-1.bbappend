@@ -34,3 +34,9 @@ inherit python3native
 #
 # but it also needs widgets to be enabled in qtbase PACKAGECONFIG
 #inherit ${@bb.utils.contains_any('ROS_WORLD_SKIP_GROUPS', ['qt5', 'qt5-widgets'], '', 'cmake_qt5', d)}
+
+# QA Issue: rmf_task-targets.cmake in rmf-task contains reference to TMPDIR [buildpaths]
+do_install:append() {
+    sed -i -e "s#${RECIPE_SYSROOT}##g" \
+        ${D}${ros_libdir}/rmf_task/cmake/rmf_task-targets.cmake
+}
