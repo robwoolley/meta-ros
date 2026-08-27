@@ -395,6 +395,18 @@ DEPENDS:append:pn-sick-safevisionary-interfaces = " rosidl-default-runtime"
 DEPENDS:append:pn-tuw-airskin-msgs = " rosidl-default-runtime"
 DEPENDS:append:pn-tuw-std-msgs = " rosidl-default-runtime"
 
+# rosidl-default-generators already stages rosidl-core-generators-native
+# for its OWN build (via ROS_BUILDTOOL_EXPORT_DEPENDS), but never declares
+# a target rosidl-core-generators. Any msgs package that depends on
+# rosidl-default-generators (directly or transitively, e.g. via std-msgs'
+# ROS_EXPORT_DEPENDS) fails do_configure with "Could not find a package
+# configuration file provided by rosidl_core_generators", since
+# rosidl_default_generatorsConfig.cmake requires it at the *consumer's*
+# configure time. Since bitbake's sysroot staging is transitive, adding
+# the target package here to rosidl-default-generators' own DEPENDS fixes
+# it for every consumer at once, rather than patching each one.
+DEPENDS:append:pn-rosidl-default-generators = " rosidl-core-generators"
+
 # Used by generated-recipes/cyclonedds/cyclonedds_0.6.0-3.bb
 ROS_UNRESOLVED_DEP-java-native = ""
 ROS_UNRESOLVED_DEP-maven-native = ""
