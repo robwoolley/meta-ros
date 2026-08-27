@@ -259,6 +259,14 @@ ROS_WORLD_SKIP_GROUPS += "lanelet2"
 # properly; only one other recipe depends on it.
 ROS_WORLD_SKIP_GROUPS += "robotraconteur"
 
+# do_package_qa's [obsolete-license] check rejects bare, unversioned SPDX
+# identifiers (oe-core wants the "-only"/"-or-later" suffixed form); these
+# 4 generated recipes' package.xml declares the old bare form.
+LICENSE:pn-ffmpeg-image-transport-msgs = "Apache-2.0"
+LICENSE:pn-flir-camera-msgs = "Apache-2.0"
+LICENSE:pn-video-to-image-msg-publisher = "GPL-2.0-or-later"
+LICENSE:pn-jrl-cmakemodules = "GPL-3.0-or-later & LGPL-3.0-or-later"
+
 # packages (like sound-play) that depend on festival; a recipe for festival
 # exists in meta-ros1, but it also needs its own speech-tools dependency
 # ported, fetches speech databases from an old CMU server, and needs GCC
