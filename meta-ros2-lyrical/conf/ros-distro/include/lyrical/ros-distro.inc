@@ -372,28 +372,22 @@ DEPENDS:append:pn-mrpt-viz = " ament-cmake-native"
 # meaningfully debuggable via the usual dbg-package workflow anyway.
 INSANE_SKIP:mrpt-random += "already-stripped"
 
-# These interface (*-msgs) packages RDEPEND on rosidl-default-runtime (per
-# their package.xml exec_depend, matching upstream convention) but not
-# DEPEND on it. That's normally fine, but their std-msgs (or similar)
-# build-time dependency exports a CMake config
-# (ament_cmake_export_dependencies-extras.cmake) that unconditionally calls
-# find_package(rosidl_default_runtime) at *their own* configure time, which
-# fails unless rosidl-default-runtime happens to already be staged
-# transitively via some other DEPENDS. Confirmed via each recipe's
-# do_configure log ("Could not find a package configuration file provided
-# by rosidl_default_runtime"). Stage it explicitly for the affected recipes.
-DEPENDS:append:pn-ackermann-nlmpc-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-audio-common-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-autoware-internal-debug-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-autoware-internal-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-ffmpeg-image-transport-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-leo-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-novatel-oem6-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-off-highway-general-purpose-radar-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-off-highway-mm7p10-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-sick-safevisionary-interfaces = " rosidl-default-runtime"
-DEPENDS:append:pn-tuw-airskin-msgs = " rosidl-default-runtime"
-DEPENDS:append:pn-tuw-std-msgs = " rosidl-default-runtime"
+# Widespread bug: 236 of the 241 lyrical recipes that reference
+# rosidl-default-runtime at all only declare it in ROS_EXEC_DEPENDS
+# (RDEPENDS), not ROS_BUILD_DEPENDS/ROS_EXPORT_DEPENDS (which feed
+# DEPENDS) -- unlike the 3 that get it right (e.g. builtin-interfaces'
+# equivalent rosidl-core-runtime). Any package exporting a CMake config
+# that transitively requires rosidl_default_runtime (which nearly all
+# ament_cmake interface packages do, via
+# ament_cmake_export_dependencies-extras.cmake) fails at its
+# *consumer's* configure time: "Could not find a package configuration
+# file provided by rosidl_default_runtime". Confirmed the scope with a
+# script checking every generated recipe's ROS_*_DEPENDS blocks; too
+# many (236) for individual DEPENDS:append:pn- overrides, so fixed it
+# generically instead -- see the anonymous python in
+# meta-ros2-lyrical/classes/ros_distro_lyrical.bbclass (a `require`d
+# .conf/.inc file's anonymous python is never registered for per-recipe
+# execution the way a bbclass's is, so it can't live here).
 
 # rosidl-default-generators already stages rosidl-core-generators-native
 # for its OWN build (via ROS_BUILDTOOL_EXPORT_DEPENDS), but never declares
