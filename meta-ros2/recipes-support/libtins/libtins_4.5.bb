@@ -16,8 +16,11 @@ inherit cmake
 EXTRA_OECMAKE += "-DBUILD_SHARED_LIBS=ON"
 
 # QA Issue: libtinsConfig.cmake / libtinsTargets.cmake contain references to TMPDIR [buildpaths]
+# LIBTINS_INCLUDE_DIRS separately hardcodes the source tree's own include/
+# path (${S}), not just ${RECIPE_SYSROOT}.
 do_install:append() {
     sed -i -e "s#${RECIPE_SYSROOT}##g" \
+        -e "s#${S}/include#${includedir}#g" \
         ${D}${libdir}/cmake/libtins/libtinsConfig.cmake \
         ${D}${libdir}/cmake/libtins/libtinsTargets.cmake
 }
