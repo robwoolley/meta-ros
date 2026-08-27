@@ -72,7 +72,10 @@ FILES:python3-${PN} = " \
 # ERROR: gdal-3.8.3-r0 do_package_qa: QA Issue: gdal: ... maximum shebang size exceeded, the maximum size is 128.
 do_install:append() {
     # Modify the Python scripts to use the runtime path to Python 
-    sed -i -e '1s|^#!.*|#!${bindir}/env python3|' \
+    # /usr/bin/env is hardcoded (not ${bindir}): for the native variant,
+    # ${bindir} itself resolves to the long recipe-sysroot-native path,
+    # reproducing the same shebang-size overflow this is meant to fix.
+    sed -i -e '1s|^#!.*|#!/usr/bin/env python3|' \
         ${D}${bindir}/gdal2tiles \
         ${D}${bindir}/gdal2tiles.py \
         ${D}${bindir}/gdal2xyz \
