@@ -401,6 +401,21 @@ INSANE_SKIP:mrpt-random += "already-stripped"
 # it for every consumer at once, rather than patching each one.
 DEPENDS:append:pn-rosidl-default-generators = " rosidl-core-generators"
 
+# rosidl-cmake's upstream package.xml never lists rosidl_adapter as a
+# dependency at all -- in a normal colcon workspace it's found because
+# every package shares one install prefix, but OE builds each recipe in
+# an isolated sysroot. Any package calling rosidl_generate_interfaces()
+# (i.e. any msgs/srvs/action package) transitively includes
+# rosidl_cmake-extras.cmake, which does a bare find_package(rosidl_adapter)
+# with no REQUIRED keyword, so its absence only warns -- but without it,
+# the .msg/.srv -> .idl adapter step never runs, leaving
+# rosidl_generate_interfaces_IDL_TUPLES empty and failing later, deep in
+# rosidl_write_generator_arguments(), with the confusing error "must be
+# invoked with at least one of the IDL_TUPLES;NON_IDL_TUPLES;
+# ROS_INTERFACE_FILES arguments". rosidl_adapter is a pure Python
+# generate-time tool, so the native variant is all any consumer needs.
+DEPENDS:append:pn-rosidl-cmake = " rosidl-adapter-native"
+
 # Used by generated-recipes/cyclonedds/cyclonedds_0.6.0-3.bb
 ROS_UNRESOLVED_DEP-java-native = ""
 ROS_UNRESOLVED_DEP-maven-native = ""
