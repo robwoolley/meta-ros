@@ -26,3 +26,23 @@ python() {
     if 'rosidl-default-runtime' in (d.getVar('ROS_EXEC_DEPENDS') or '').split():
         d.appendVar('DEPENDS', ' rosidl-default-runtime')
 }
+
+# Same shape of bug, different package: ament-cmake-native's own DEPENDS
+# only stages ament-cmake-target-dependencies-native into the *native*
+# sysroot, never the target-arch ament-cmake-target-dependencies package
+# into a cross-compiling consumer's sysroot. Any recipe whose CMakeLists.txt
+# calls ament_target_dependencies() -- defined by
+# ament_cmake_target_dependencies-extras.cmake -- fails to configure with
+# "Unknown CMake command \"ament_target_dependencies\"" because that macro
+# is never found. Recipes declare one of three ament-cmake-family buildtools
+# in ROS_BUILDTOOL_DEPENDS (REP-0140) depending on which convenience wrapper
+# their package.xml names -- ament_cmake, ament_cmake_auto, or
+# ament_cmake_ros -- all of which need the same macro staged.
+python() {
+    if d.getVar('PN') == 'ament-cmake-target-dependencies':
+        return
+    buildtool_deps = (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split()
+    ament_cmake_family = {'ament-cmake-native', 'ament-cmake-auto-native', 'ament-cmake-ros-native'}
+    if ament_cmake_family & set(buildtool_deps):
+        d.appendVar('DEPENDS', ' ament-cmake-target-dependencies')
+}
