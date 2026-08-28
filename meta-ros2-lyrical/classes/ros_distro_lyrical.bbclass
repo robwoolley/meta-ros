@@ -46,3 +46,23 @@ python() {
     if ament_cmake_family & set(buildtool_deps):
         d.appendVar('DEPENDS', ' ament-cmake-target-dependencies')
 }
+
+# generate-parameter-library's package.xml declares generate_parameter_library
+# as a regular (non-buildtool) dependency, even though its CMake macro
+# generate_parameter_library() runs generate_parameter_library_cpp -- a
+# code generator that must execute on the build host -- via find_program()
+# at configure time. bitbake's "export" mechanism doesn't cascade past one
+# hop (see the recipe's own comment on ROS_BUILDTOOL_EXPORT_DEPENDS), so
+# generate-parameter-library-native being built is not enough: consumers
+# never get the native tool staged into their own sysroot, and
+# find_program() fails with "generate_parameter_library_cpp_BIN must not
+# be empty". The actual generate_parameter_library_cpp binary is shipped
+# by the sibling generate-parameter-library-py-native package (confirmed
+# via tmp/sysroots-components), not generate-parameter-library-native
+# itself, which only provides the CMake config.
+python() {
+    if d.getVar('PN') in ('generate-parameter-library', 'generate-parameter-library-py'):
+        return
+    if 'generate-parameter-library' in (d.getVar('DEPENDS') or '').split():
+        d.appendVar('DEPENDS', ' generate-parameter-library-py-native')
+}
