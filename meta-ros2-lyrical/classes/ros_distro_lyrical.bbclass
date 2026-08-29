@@ -27,17 +27,31 @@ python() {
         d.appendVar('DEPENDS', ' rosidl-default-runtime')
 }
 
-# Same shape of bug, different package: ament-cmake-native's own DEPENDS
+# Related bug, two parts. Any recipe whose CMakeLists.txt calls
+# ament_target_dependencies() -- defined by
+# ament_cmake_target_dependencies-extras.cmake -- fails to configure with
+# "Unknown CMake command \"ament_target_dependencies\"".
+#
+# Part 1 (bitbake-level, still needed): ament-cmake-native's own DEPENDS
 # only stages ament-cmake-target-dependencies-native into the *native*
 # sysroot, never the target-arch ament-cmake-target-dependencies package
-# into a cross-compiling consumer's sysroot. Any recipe whose CMakeLists.txt
-# calls ament_target_dependencies() -- defined by
-# ament_cmake_target_dependencies-extras.cmake -- fails to configure with
-# "Unknown CMake command \"ament_target_dependencies\"" because that macro
-# is never found. Recipes declare one of three ament-cmake-family buildtools
-# in ROS_BUILDTOOL_DEPENDS (REP-0140) depending on which convenience wrapper
-# their package.xml names -- ament_cmake, ament_cmake_auto, or
-# ament_cmake_ros -- all of which need the same macro staged.
+# into a cross-compiling consumer's sysroot. Recipes declare one of three
+# ament-cmake-family buildtools in ROS_BUILDTOOL_DEPENDS (REP-0140)
+# depending on which convenience wrapper their package.xml names --
+# ament_cmake, ament_cmake_auto, or ament_cmake_ros -- all of which need
+# the same macro staged.
+#
+# Part 2 (CMake-level, the actual trigger): staging the files isn't
+# enough by itself. In lyrical/rolling, the ament_cmake metapackage no
+# longer hard-depends on ament_cmake_target_dependencies -- it's only a
+# build_export_depend now -- so plain find_package(ament_cmake REQUIRED)
+# no longer transitively find_package()'s (and thus include()'s) it the
+# way it did in older distros. Upstream's own fix is for each consuming
+# package to find_package(ament_cmake_target_dependencies) itself (see
+# https://github.com/ament/ament_cmake/pull/572), but most CMakeLists.txt
+# files in the ecosystem haven't been updated for that yet, so it's
+# injected globally instead via CMAKE_PROJECT_INCLUDE -- see
+# ament_target_dependencies_compat.cmake next to this bbclass.
 python() {
     if d.getVar('PN') == 'ament-cmake-target-dependencies':
         return
@@ -46,6 +60,8 @@ python() {
     if ament_cmake_family & set(buildtool_deps):
         d.appendVar('DEPENDS', ' ament-cmake-target-dependencies')
 }
+
+EXTRA_OECMAKE:append = " -DCMAKE_PROJECT_INCLUDE=${ROS2_LYRICAL_LAYER_DIR}/classes/ament_target_dependencies_compat.cmake"
 
 # generate-parameter-library's package.xml declares generate_parameter_library
 # as a regular (non-buildtool) dependency, even though its CMake macro
