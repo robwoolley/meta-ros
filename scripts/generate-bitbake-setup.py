@@ -61,8 +61,15 @@ def kas_dump(kas_bin, work_dir, kas_file):
     return yaml.safe_load(result.stdout)
 
 
-def repo_source_entry(repo):
-    branch = repo.get("branch") or "master"
+def repo_source_entry(repo, default_branch):
+    # `kas dump` does not materialize a repo's *inherited* branch (from a yocto/<release>.yml's
+    # defaults.repos.branch) into that repo's own entry -- only an explicit per-repo override
+    # shows up as branch: at all. Confirmed live: kas/oeros-wrynose-jazzy-qemux86-64.yml's dumped
+    # "ros"/"oeros" entries have no branch: key, yet they must resolve to "wrynose" (verified via
+    # a real checkout, spec Appendix), not silently fall back to some other value. default_branch
+    # is that release's own defaults.repos.branch value (== the release name for every release
+    # today: wrynose.yml/master.yml/scarthgap.yml all set defaults.repos.branch to their own name).
+    branch = repo.get("branch") or default_branch
     rev = repo.get("commit") or branch
     return {"git-remote": {"uri": repo["url"], "branch": branch, "rev": rev}}
 
@@ -74,7 +81,7 @@ def repo_bb_layers(source_name, repo):
     return [f"{source_name}/{sub}" for sub, state in layers.items() if state != "disabled"]
 
 
-def collect_group(kas_bin, work_dir, kas_dir, release, ros_distro, machines):
+def collect_group(kas_bin, work_dir, kas_dir, release, ros_distro, machines, default_branch):
     sources = OrderedDict()
     bb_layers = []
     seen_layers = set()
@@ -89,7 +96,7 @@ def collect_group(kas_bin, work_dir, kas_dir, release, ros_distro, machines):
             # which fetches it regardless since its repos: mechanism has no way to skip that.
             if repo.get("layers") and not layers:
                 continue
-            sources[source_name] = repo_source_entry(repo)
+            sources[source_name] = repo_source_entry(repo, default_branch)
             for layer in layers:
                 if layer not in seen_layers:
                     seen_layers.add(layer)
@@ -203,7 +210,10 @@ def main():
         ros_data = ros_distros[ros_distro]
         machines = cell["machines"]
 
-        sources, bb_layers = collect_group(args.kas_bin, args.work_dir, args.kas_dir, release, ros_distro, machines)
+        # The release name is also its defaults.repos.branch value in every kas/yocto/<release>.yml
+        # today (verified for wrynose and master); used as the fallback default branch for any repo
+        # kas dump doesn't show an explicit branch: for (see repo_source_entry).
+        sources, bb_layers = collect_group(args.kas_bin, args.work_dir, args.kas_dir, release, ros_distro, machines, release)
         config = build_config(release, release_data, ros_distro, ros_data, machines, machines_meta)
         config["sources"] = sources  # replaces the None placeholder, keeping key order intact
         config["bitbake-setup"]["configurations"][0]["bb-layers"] = bb_layers
