@@ -22,25 +22,50 @@
 # those legacy variables -- so this covers both.
 #
 # Injected via CMAKE_PROJECT_INCLUDE -- see ros_distro_lyrical.bbclass.
+# CMake forbids mixing keyword-style (PUBLIC/PRIVATE/INTERFACE) and
+# plain-style target_link_libraries() calls on the same target ("The
+# plain/keyword signature for target_link_libraries has already been used
+# with the target"). ament_target_dependencies() itself never used a
+# scope keyword unless the caller explicitly passed one, so a recipe's
+# CMakeLists.txt commonly mixes an unscoped
+# ament_target_dependencies(tgt dep1 dep2) with its own plain
+# target_link_libraries(tgt ${OpenCV_LIBRARIES}) call (e.g. aruco_ros)
+# without conflict. Match that: only use a scope keyword when the caller
+# passed one, plain otherwise.
 if(NOT COMMAND ament_target_dependencies)
   macro(ament_target_dependencies target)
     cmake_parse_arguments(_atd "" "" "PUBLIC;PRIVATE;INTERFACE" ${ARGN})
-    foreach(_atd_dep ${_atd_UNPARSED_ARGUMENTS} ${_atd_PUBLIC} ${_atd_PRIVATE} ${_atd_INTERFACE})
-      if(TARGET ${_atd_dep}::${_atd_dep})
-        target_link_libraries(${target} PUBLIC ${_atd_dep}::${_atd_dep})
-      elseif(TARGET ${_atd_dep})
-        target_link_libraries(${target} PUBLIC ${_atd_dep})
+    foreach(_atd_scope PUBLIC PRIVATE INTERFACE "")
+      if(_atd_scope STREQUAL "")
+        set(_atd_deps ${_atd_UNPARSED_ARGUMENTS})
+        # target_link_libraries() is the only command with a legacy
+        # plain (no-keyword) signature; target_include_directories() and
+        # target_compile_definitions() always require one, so those two
+        # default to PUBLIC when the caller didn't scope the call.
+        set(_atd_tll_keyword "")
+        set(_atd_keyword PUBLIC)
       else()
-        if(DEFINED ${_atd_dep}_INCLUDE_DIRS)
-          target_include_directories(${target} PUBLIC ${${_atd_dep}_INCLUDE_DIRS})
-        endif()
-        if(DEFINED ${_atd_dep}_LIBRARIES)
-          target_link_libraries(${target} PUBLIC ${${_atd_dep}_LIBRARIES})
-        endif()
-        if(DEFINED ${_atd_dep}_DEFINITIONS)
-          target_compile_definitions(${target} PUBLIC ${${_atd_dep}_DEFINITIONS})
-        endif()
+        set(_atd_deps ${_atd_${_atd_scope}})
+        set(_atd_tll_keyword ${_atd_scope})
+        set(_atd_keyword ${_atd_scope})
       endif()
+      foreach(_atd_dep ${_atd_deps})
+        if(TARGET ${_atd_dep}::${_atd_dep})
+          target_link_libraries(${target} ${_atd_tll_keyword} ${_atd_dep}::${_atd_dep})
+        elseif(TARGET ${_atd_dep})
+          target_link_libraries(${target} ${_atd_tll_keyword} ${_atd_dep})
+        else()
+          if(DEFINED ${_atd_dep}_INCLUDE_DIRS)
+            target_include_directories(${target} ${_atd_keyword} ${${_atd_dep}_INCLUDE_DIRS})
+          endif()
+          if(DEFINED ${_atd_dep}_LIBRARIES)
+            target_link_libraries(${target} ${_atd_tll_keyword} ${${_atd_dep}_LIBRARIES})
+          endif()
+          if(DEFINED ${_atd_dep}_DEFINITIONS)
+            target_compile_definitions(${target} ${_atd_keyword} ${${_atd_dep}_DEFINITIONS})
+          endif()
+        endif()
+      endforeach()
     endforeach()
   endmacro()
 endif()
