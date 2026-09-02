@@ -19,3 +19,17 @@ COMPATIBLE_MACHINE:armv7ve = "${@bb.utils.contains('TUNE_FEATURES', 'callconvent
 RC_PROJECT_VERSION = "${@'${PV}'.split('-')[0]}"
 
 EXTRA_OECMAKE += "-DRC_PROJECT_VERSION=${RC_PROJECT_VERSION}"
+
+# CMake Error: format not a string literal and no format arguments
+# [-Werror=format-security] -- passing a runtime string (ex.what()) as the
+# format argument itself, rather than as a %s argument, is a genuine
+# format-string footgun (if the message ever contained a literal '%' it
+# would be misinterpreted as a format specifier), not a false positive.
+# Standard fix: pass an explicit "%s" format string.
+do_configure:prepend() {
+    sed -i \
+        -e 's/RCLCPP_WARN(this->get_logger(), ex.what());/RCLCPP_WARN(this->get_logger(), "%s", ex.what());/g' \
+        -e 's/RCLCPP_ERROR(this->get_logger(), ex.what());/RCLCPP_ERROR(this->get_logger(), "%s", ex.what());/g' \
+        -e 's/RCLCPP_FATAL(this->get_logger(), ex.what());/RCLCPP_FATAL(this->get_logger(), "%s", ex.what());/g' \
+        ${S}/src/genicam_driver.cpp
+}
