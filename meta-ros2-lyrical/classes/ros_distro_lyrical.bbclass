@@ -98,3 +98,31 @@ python() {
     if 'rosidl-default-generators' in (d.getVar('DEPENDS') or '').split():
         d.appendVar('DEPENDS', ' rosidl-adapter-native')
 }
+
+# Same shape of bug again, same fix. rosidl_generator_py_generate_interfaces.cmake
+# (from rosidl-generator-py) does
+# find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy),
+# and fails with "Could NOT find Python3 (missing: Python3_NumPy_INCLUDE_DIRS
+# NumPy)" for every consumer with rosidl-default-generators in DEPENDS.
+#
+# Tried pointing this at target Python first (python3-numpy + inherit
+# python3targetconfig), since Development+NumPy for a package that builds
+# a real C extension module sounds like it should target the actual
+# target Python -- but it can't work here: cmake.bbclass hardcodes
+# -DPython3_EXECUTABLE:PATH=${PYTHON}, and PYTHON is set unconditionally
+# to the *native* interpreter by python3native.bbclass (which
+# ros_ament_cmake.bbclass already inherits, and which python3targetconfig
+# itself also inherits without overriding PYTHON -- it only rewrites
+# PATH/PYTHONPATH via shell prepends, which a bitbake-time ${PYTHON}
+# string expansion never sees). Since CMake's FindPython3 NumPy component
+# check works by literally executing the hinted interpreter to `import
+# numpy`, and that interpreter is unconditionally native, only
+# python3-numpy-native can ever satisfy it here -- confirmed no actual
+# numpy files (just an unrelated same-named file from setuptools) exist
+# anywhere under any consumer's recipe-sysroot-native.
+python() {
+    if d.getVar('PN') in ('rosidl-default-generators', 'rosidl-generator-py'):
+        return
+    if 'rosidl-default-generators' in (d.getVar('DEPENDS') or '').split():
+        d.appendVar('DEPENDS', ' python3-numpy-native')
+}
