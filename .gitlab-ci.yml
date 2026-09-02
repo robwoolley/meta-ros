@@ -5,9 +5,8 @@ variables:
     description: "The Yocto Project release"
     value: master
     options:
-      - kirkstone
       - scarthgap
-      - walnascar
+      - wrynose
       - master
   ROS_DISTRO:
     description: "The ROS distro"
@@ -17,6 +16,7 @@ variables:
       - humble
       - jazzy
       - kilted
+      - lyrical
       - rolling
   TARGET_RECIPE: "ros-image-core"
   MACHINE:
@@ -24,6 +24,7 @@ variables:
     value: "raspberrypi5"
     options:
       - "qemux86-64"
+      - "raspberrypi0-2w-64"
       - "raspberrypi4-64"
       - "raspberrypi5"
   GITLAB_REDIRECT:
@@ -66,6 +67,21 @@ variables:
 
 
     
+config-check:
+  stage: build
+  image: python:3.12-slim
+  interruptible: true
+  # Verifies the generated kas/oeros-*.yml files and the README's matrix table haven't drifted
+  # from matrix.yml, the single source of truth (docs/kas-to-fragments-migration-spec.md section
+  # 3.3). Deliberately kept separate from build-job: it needs no kas checkout, no bitbake, and no
+  # MACHINE/ROS_DISTRO/OE_RELEASE_SERIES selection, so it can run automatically on every pipeline
+  # instead of the manual, per-combination build below.
+  before_script:
+    - pip3 install pyyaml
+  script:
+    - python3 scripts/generate-kas.py --check
+    - python3 scripts/check-readme-table.py
+
 build-job:
   stage: build
   extends: .default

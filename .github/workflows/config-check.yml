@@ -1,0 +1,25 @@
+name: Config check
+
+# Verifies the generated kas/oeros-*.yml files and the README's matrix table haven't drifted
+# from matrix.yml, the single source of truth (docs/kas-to-fragments-migration-spec.md section
+# 3.3). Deliberately separate from any build workflow: it needs no kas checkout, no bitbake, and
+# no machine/ROS-distro/release selection, so it runs automatically on every push/PR instead of
+# being gated behind a manual, per-combination build.
+
+on:
+  push:
+    branches: [build]
+  pull_request:
+    branches: [build]
+
+jobs:
+  config-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install pyyaml
+      - run: python3 scripts/generate-kas.py --check
+      - run: python3 scripts/check-readme-table.py

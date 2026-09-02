@@ -174,6 +174,32 @@ documentation, independent of revision 7's `local_conf_header` restructuring):
   interactive-only; the direct-file-path form already verified end to end in Phase 4 is offered as the
   non-interactive alternative instead of asserting an unverified registry-based non-interactive syntax.
 
+**Revision 9 changes** (Phase 6 started: drift-detection wired into CI, per user direction to keep it separate
+from the existing build pipeline and to support both GitHub and GitLab):
+- **CI strategy decision**: config-generation drift checking (`generate-kas.py --check` and the new
+  `check-readme-table.py`) runs as its own job/workflow, automatically on every push/PR, entirely separate from
+  the existing manual `build-job` in `.gitlab-ci.yml`. It stays on the `build` branch (not duplicated per
+  release branch) since `build` is the only branch that holds `kas/`, `matrix.yml`, and the generator scripts —
+  the per-release branches (`meta-ros1-noetic`, `meta-ros2-jazzy`, etc.) have nothing for this check to run
+  against.
+- **`.gitlab-ci.yml` variable staleness fixed**: `OE_RELEASE_SERIES` options dropped `kirkstone`/`walnascar`
+  (no longer present anywhere in this repo, matching the README staleness already fixed in revision 8) and
+  added `wrynose`; `ROS_DISTRO` options gained `lyrical`; `MACHINE` options gained `raspberrypi0-2w-64` — all
+  three now match `matrix.yml` exactly.
+- **New `config-check` job added to `.gitlab-ci.yml`**, and a new equivalent GitHub Actions workflow at
+  `.github/workflows/config-check.yml` (this repo had no `.github/workflows/` directory before now, and GitHub
+  is the primary CI system per user direction). Both run the same two checks: `generate-kas.py --check`
+  (already existed, previously unwired into any CI) and the new `scripts/check-readme-table.py`.
+- **New script `scripts/check-readme-table.py`**: diffs `kas/README.md`'s table (between its
+  `<!-- Generated from matrix.yml -->`/`<!-- End generated table -->` markers) against a fresh run of
+  `scripts/generate-matrix-table.py`, so the README table itself is drift-checked in CI the same way the
+  generated `kas/*.yml` files are — closing the gap where revision 8 introduced generation for that table but
+  nothing yet verified it stayed in sync. Verified locally: passes clean against the current tree.
+- **Not yet done** (remaining Phase 6 scope): wiring the validation framework's smoke tier (real
+  `bitbake-setup init --non-interactive` + Tier 2 comparison) into CI — this needs real network access and a
+  toolchain, unlike the lightweight config-check job, and is being treated as a separate follow-up rather than
+  bundled into this change.
+
 ## 0. Summary of what was verified, up front
 
 Because several sections below revise assumptions stated in the originating brief, the corrected facts are
