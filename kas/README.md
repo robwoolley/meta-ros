@@ -159,23 +159,41 @@ layers currently in `bblayers.conf`, with its description.
 
 ## CI
 
-GitHub Actions (`.github/workflows/config-check.yml`) is the primary CI system; GitLab CI
-(`.gitlab-ci.yml`) is also supported. Both run a `config-check` job on every push/PR to `build` that
-verifies the generated `kas/oeros-*.yml` files and this README's table haven't drifted from
-`matrix.yml` (`scripts/generate-kas.py --check` and `scripts/check-readme-table.py`) -- kept
-separate from the actual (manual, per-combination) build so it runs automatically and cheaply.
+GitHub Actions (`.github/workflows/`) is the primary CI system; GitLab CI (`.gitlab-ci.yml`) is
+also supported. Both run two checks, kept deliberately separate since one is cheap and the other
+isn't:
+- **`config-check`**, on every push/PR to `build`: verifies the generated `kas/oeros-*.yml` files
+  and this README's table haven't drifted from `matrix.yml`
+  (`scripts/generate-kas.py --check` and `scripts/check-readme-table.py`). No network beyond the
+  checkout itself, seconds to run.
+- **`smoke-equivalence`**, nightly only: a real kas checkout and a real `bitbake-setup init` for one
+  representative cell (`wrynose`/`rolling`/`qemux86-64`), diffed with
+  `scripts/validate-equivalence.py` (Tier 2, spec section 4) to catch any drift between the two
+  entry paths' resolved bitbake configuration. This clones the actual layer set and runs
+  `bitbake-getvar`, so it costs real minutes, not seconds -- on GitHub it runs on a `schedule`
+  trigger (also triggerable manually via `workflow_dispatch`); on GitLab it's gated behind
+  `$CI_PIPELINE_SOURCE == "schedule"`, so it only runs once a **Pipeline Schedule** is created under
+  this project's **Settings > CI/CD > Schedules** (the YAML alone can't create that schedule, only
+  gate on one existing).
+
 GitLab CI also has a manual `build-job` that runs a real `kas build`.
 
-**Running this in your own fork**: `config-check` needs no secrets, tokens, or org-specific
-configuration on either system, so it works unmodified in a personal fork. Two things to be aware
-of:
+**Running this in your own fork**: neither check needs secrets, tokens, or org-specific
+configuration on either system, so both work unmodified in a personal fork. A few things to be
+aware of:
 - GitHub disables Actions on forks by default -- enable them once under the fork's **Actions** tab,
-  or trigger `config-check` manually via its `workflow_dispatch` trigger.
+  or trigger either workflow manually via its `workflow_dispatch` trigger.
+- GitHub also disables *scheduled* workflows specifically (on any public repo, forks included)
+  after 60 days with no repository activity (a push, release, or merged PR -- issue/PR comments
+  don't count); a quiet personal fork will need `smoke-equivalence` re-enabled or triggered manually
+  from the Actions tab from time to time.
+- GitLab has no automatic pipeline schedules at all -- `smoke-equivalence` there stays dormant
+  until you create a **Pipeline Schedule** under **Settings > CI/CD > Schedules** in your fork.
 - GitLab's `build-job` pulls its build image via the `CROPS_IMAGE` CI/CD variable, which defaults
   to `oeros`'s own container registry path. If that path isn't reachable from your fork's CI (eg no
   access to the upstream registry), override `CROPS_IMAGE` with your own pullable image under
-  **Settings > CI/CD > Variables**, rather than editing `.gitlab-ci.yml`. `config-check` doesn't use
-  this image and is unaffected either way.
+  **Settings > CI/CD > Variables**, rather than editing `.gitlab-ci.yml`. Neither check job uses
+  this image and both are unaffected either way.
 
 ## Writing the image
 

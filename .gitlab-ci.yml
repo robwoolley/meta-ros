@@ -87,6 +87,63 @@ config-check:
     - python3 scripts/generate-kas.py --check
     - python3 scripts/check-readme-table.py
 
+smoke-equivalence:
+  stage: build
+  image: python:3.12-slim
+  interruptible: true
+  timeout: 1h
+  # Nightly-only, real-network smoke test (spec section 4/Phase 6): runs an actual kas checkout and
+  # an actual bitbake-setup init for one representative fragment-capable cell
+  # (wrynose/rolling/qemux86-64) and diffs their resolved bitbake configuration with
+  # scripts/validate-equivalence.py. Deliberately separate from config-check above: this one clones
+  # the real layer set and runs bitbake-getvar, real minutes of network/CPU cost rather than
+  # seconds, so it only runs when triggered by a scheduled pipeline (create one under this
+  # project's Settings > CI/CD > Schedules -- a rules: entry here cannot create that schedule
+  # itself, only gate on one already existing).
+  #
+  # --ignore-vars excludes three differences already found and documented running the first live
+  # kas-vs-bitbake-setup comparison (docs/kas-to-fragments-migration-spec.md revision 6):
+  # TEMPLATECONF has no bitbake-setup equivalent; OE_FRAGMENTS differs because
+  # oeros/allow-commercial-licenses is enabled unconditionally per (release, ros_distro) group
+  # (no per-machine conditioning in oe-fragments-one-of); BBLAYERS differs because bitbake-setup's
+  # bb-layers is the union of every machine in the group, a confirmed strict superset of this one
+  # machine's actual layers. None are regressions -- they are permanent, understood consequences of
+  # the one-JSON-file-per-group design (spec section 5 Phase 4).
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  variables:
+    RELEASE: wrynose
+    SMOKE_ROS_DISTRO: rolling
+    SMOKE_MACHINE: qemux86-64
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git
+    - pip3 install kas bitbake-setup pyyaml
+  script:
+    - python3 scripts/extract-config-vars.py
+      "kas/oeros-${RELEASE}-${SMOKE_ROS_DISTRO}-${SMOKE_MACHINE}.yml"
+      --work-dir "${CI_PROJECT_DIR}/smoke/kas-side" --out "${CI_PROJECT_DIR}/smoke/kas-snapshot.json"
+    - git clone --branch "${RELEASE}" --depth 1 https://github.com/robwoolley/meta-oeros.git "${CI_PROJECT_DIR}/smoke/meta-oeros-registry"
+    - bitbake-setup --setting default top-dir-prefix "${CI_PROJECT_DIR}/smoke/bbsetup-side"
+      init "${CI_PROJECT_DIR}/smoke/meta-oeros-registry/conf/registry/configurations/oeros-${RELEASE}-${SMOKE_ROS_DISTRO}.conf.json"
+      "oeros-${RELEASE}-${SMOKE_ROS_DISTRO}" "machine/${SMOKE_MACHINE}" --non-interactive
+    - python3 scripts/extract-config-vars.py
+      "kas/oeros-${RELEASE}-${SMOKE_ROS_DISTRO}-${SMOKE_MACHINE}.yml"
+      --work-dir "${CI_PROJECT_DIR}/smoke/bbsetup-side/bitbake-builds/oeros-${RELEASE}-${SMOKE_ROS_DISTRO}"
+      --skip-checkout --out "${CI_PROJECT_DIR}/smoke/bbsetup-snapshot.json"
+    - python3 scripts/validate-equivalence.py
+      "${CI_PROJECT_DIR}/smoke/kas-snapshot.json" "${CI_PROJECT_DIR}/smoke/bbsetup-snapshot.json"
+      --cell "${RELEASE}-${SMOKE_ROS_DISTRO}-${SMOKE_MACHINE}"
+      --ignore-vars TEMPLATECONF,OE_FRAGMENTS,BBLAYERS
+      --report-json "${CI_PROJECT_DIR}/smoke/report.json"
+  artifacts:
+    name: "smoke-equivalence-report"
+    when: always
+    expire_in: 1 week
+    paths:
+      - smoke/report.json
+      - smoke/kas-snapshot.json
+      - smoke/bbsetup-snapshot.json
+
 build-job:
   stage: build
   extends: .default

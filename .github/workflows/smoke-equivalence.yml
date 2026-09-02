@@ -1,0 +1,76 @@
+name: Smoke equivalence check
+
+# Nightly-only, real-network smoke test (spec section 4/Phase 6): runs an actual kas checkout and
+# an actual bitbake-setup init for one representative fragment-capable cell
+# (wrynose/rolling/qemux86-64) and diffs their resolved bitbake configuration with
+# scripts/validate-equivalence.py. Deliberately NOT run on every push/PR like config-check.yml --
+# unlike that job, this one clones the real layer set (openembedded-core, meta-openembedded,
+# meta-ros, meta-oeros, meta-clang, meta-virtualization, meta-zenoh, meta-qt6, ...) and runs
+# bitbake-getvar, which costs real minutes of network/CPU rather than seconds.
+#
+# --ignore-vars below excludes three differences already found and documented running the first
+# live kas-vs-bitbake-setup comparison (docs/kas-to-fragments-migration-spec.md revision 6):
+# TEMPLATECONF has no bitbake-setup equivalent; OE_FRAGMENTS differs because
+# oeros/allow-commercial-licenses is enabled unconditionally per (release, ros_distro) group by
+# bitbake-setup (no per-machine conditioning in oe-fragments-one-of), not just for the Raspberry Pi
+# machines that need it; BBLAYERS differs because bitbake-setup's bb-layers is the union of every
+# machine in the group, a confirmed strict superset of this one machine's actual layers. None of
+# these are regressions to catch -- they are permanent, understood consequences of the
+# one-JSON-file-per-group design (spec section 5 Phase 4).
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  smoke-equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      RELEASE: wrynose
+      ROS_DISTRO: rolling
+      MACHINE: qemux86-64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install kas bitbake-setup pyyaml
+
+      - name: kas side -- checkout + extract
+        run: |
+          python3 scripts/extract-config-vars.py \
+            "kas/oeros-${RELEASE}-${ROS_DISTRO}-${MACHINE}.yml" \
+            --work-dir "$RUNNER_TEMP/kas-side" \
+            --out "$RUNNER_TEMP/kas-snapshot.json"
+
+      - name: bitbake-setup side -- checkout registry + init + extract
+        run: |
+          git clone --branch "$RELEASE" --depth 1 https://github.com/robwoolley/meta-oeros.git "$RUNNER_TEMP/meta-oeros-registry"
+          bitbake-setup --setting default top-dir-prefix "$RUNNER_TEMP/bbsetup-side" \
+            init "$RUNNER_TEMP/meta-oeros-registry/conf/registry/configurations/oeros-${RELEASE}-${ROS_DISTRO}.conf.json" \
+            "oeros-${RELEASE}-${ROS_DISTRO}" "machine/${MACHINE}" \
+            --non-interactive
+          python3 scripts/extract-config-vars.py \
+            "kas/oeros-${RELEASE}-${ROS_DISTRO}-${MACHINE}.yml" \
+            --work-dir "$RUNNER_TEMP/bbsetup-side/bitbake-builds/oeros-${RELEASE}-${ROS_DISTRO}" \
+            --skip-checkout \
+            --out "$RUNNER_TEMP/bbsetup-snapshot.json"
+
+      - name: Compare
+        run: |
+          python3 scripts/validate-equivalence.py \
+            "$RUNNER_TEMP/kas-snapshot.json" "$RUNNER_TEMP/bbsetup-snapshot.json" \
+            --cell "${RELEASE}-${ROS_DISTRO}-${MACHINE}" \
+            --ignore-vars TEMPLATECONF,OE_FRAGMENTS,BBLAYERS \
+            --report-json "$RUNNER_TEMP/report.json"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-equivalence-report
+          path: |
+            ${{ runner.temp }}/report.json
+            ${{ runner.temp }}/kas-snapshot.json
+            ${{ runner.temp }}/bbsetup-snapshot.json

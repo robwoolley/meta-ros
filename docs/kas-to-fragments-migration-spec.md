@@ -212,6 +212,51 @@ from the existing build pipeline and to support both GitHub and GitLab):
   until the fork owner enables them once (inherent GitHub behavior, not fixable from the workflow file) — the
   GitHub workflow also gained a `workflow_dispatch` trigger so it can be run manually in that case.
 
+**Revision 10 changes** (Phase 6's remaining scope — the smoke tier — wired into CI, scoped per
+explicit user direction to a single cell, nightly-only rather than every PR):
+- **New `smoke-equivalence` job/workflow** (`.gitlab-ci.yml`, `.github/workflows/smoke-equivalence.yml`):
+  runs a real `kas checkout` (`scripts/extract-config-vars.py`) and a real `bitbake-setup init
+  --non-interactive` for `wrynose`/`rolling`/`qemux86-64`, then `scripts/validate-equivalence.py`
+  to diff their resolved configuration — the actual smoke-tier check described in § 4/Phase 6,
+  previously only run by hand (revision 6). Triggered nightly (`schedule`/`cron`) plus manual
+  dispatch, not on every push/PR, since unlike `config-check` it clones the real layer set and
+  costs real minutes rather than seconds.
+- **`--ignore-vars TEMPLATECONF,OE_FRAGMENTS,BBLAYERS`**: the three permanent, already-documented
+  differences from revision 6's first live comparison (no bitbake-setup equivalent for
+  `TEMPLATECONF`; `OE_FRAGMENTS` differs because `oeros/allow-commercial-licenses` is enabled
+  per-group not per-machine; `BBLAYERS` differs because bitbake-setup's `bb-layers` is the union
+  across every machine in the group, a confirmed strict superset of any one machine's actual
+  layers) — carried forward into this job's invocation rather than re-discovered.
+- **`bitbake-setup`'s actual CLI/output-layout was verified directly from its installed source**,
+  not assumed: `bitbake-setup init` has no `--directory`/`-o` flag; output location is
+  `<top-dir-prefix>/<top-dir-name>/<setup-dir-name>/build` (confirmed by reading
+  `bitbake_setup/__main__.py`'s `init_config()`/`build_status()`, not just its `--help` text) —
+  `--setting default top-dir-prefix <dir>` (global, per-invocation, no persisted state) makes this
+  deterministic for CI; `<top-dir-name>` defaults to `bitbake-builds` and `<setup-dir-name>` comes
+  straight from the registry JSON's own `setup-dir-name` field for a fresh directory. This CLI
+  investigation was done specifically to avoid guessing at a syntax before committing it into CI,
+  per the same discipline as revision 8's registry-`init` limitation being documented rather than
+  asserted.
+- **GitLab job names avoid the pipeline's own `ROS_DISTRO`/`MACHINE` input variables**
+  (`SMOKE_ROS_DISTRO`/`SMOKE_MACHINE` instead): those two names are already global pipeline
+  variables with `options:` dropdowns for `build-job`'s manual trigger; reusing them at job level
+  would silently override that picker's value for this job (the same "duplicate key silently wins"
+  class of bug already learned the hard way with kas `local_conf_header` in revision 7), not just
+  be redundant.
+- **Not run end-to-end in this session**: the full checkout (openembedded-core, meta-openembedded,
+  meta-ros, meta-oeros, meta-clang, meta-virtualization, meta-zenoh, meta-qt6) is multiple GB and
+  would take many minutes — impractical to exercise fully in this environment before committing.
+  Every individual command in the job (`kas checkout`, `bitbake-getvar --value`, `bitbake-setup
+  init --non-interactive` with the direct-file-path form, `validate-equivalence.py`) was
+  independently verified live in earlier phases (revisions 6 and 8); this revision composes them
+  into a new job without re-deriving any of them from scratch, but the job's first real run will be
+  its first true end-to-end execution — worth watching once it fires.
+- `kas/README.md`'s **CI** section extended to describe `smoke-equivalence`, and its fork-friendliness
+  note extended with two more real, verified facts: GitHub disables *scheduled* workflows specifically
+  after 60 days of repository inactivity (confirmed via GitHub's own docs/community discussions, not
+  assumed), and GitLab has no automatic schedules at all — `smoke-equivalence` there stays dormant
+  until a Pipeline Schedule is created manually in the fork.
+
 ## 0. Summary of what was verified, up front
 
 Because several sections below revise assumptions stated in the originating brief, the corrected facts are
