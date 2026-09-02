@@ -1,6 +1,6 @@
 # Migrating meta-ros kas configurations to native bitbake configuration fragments
 
-Status: draft specification, revision 5 (2026-09-02) — Phases 0 through 3 of § 5 are now implemented and
+Status: draft specification, revision 6 (2026-09-02) — Phases 0 through 4 of § 5 are now implemented and
 committed (locally) against `meta-ros-oe-fragments`, `meta-oeros`, and `meta-ros`; this document is being kept
 in sync with that work as it proceeds, not just revised in response to review comments.
 Scope: `meta-ros` `build` branch `kas/` tree (this repository), `meta-oeros`, `meta-ros-common` and the ROS
@@ -85,6 +85,43 @@ validation-tooling bug, and one serious operational hazard found and fixed durin
   disposable copies for the remainder of this work. **This is now § 4's first operational rule**: never
   symlink a real, actively-developed repository into a `KAS_WORK_DIR` that anything will run `kas checkout`
   against again — use a disposable copy, or push to a scratch remote/branch instead.
+
+**Revision 6 changes** (Phase 4 implemented; the `bitbake-setup.schema.json`/`layers.schema.json` location
+corrected, and three real, now-documented differences found running the first live kas-vs-bitbake-setup
+comparison):
+- **Phase 4 (§ 5) is done**: `scripts/generate-bitbake-setup.py` publishes
+  `meta-oeros/conf/registry/configurations/oeros-<release>-<ros-distro>.conf.json` for all 11 fragment-capable
+  `(release, ros_distro)` groups, on both `meta-oeros` branches. Design choice, made for the same reason as
+  § 3.2's kas generator: rather than re-deriving each repo's resolved `layers:` (which subdirs are actually
+  active) independently from `matrix.yml`, the generator runs `kas dump` against the already-generated
+  `kas/oeros-*.yml` file for each `(release, ros_distro, machine)` and treats its resolved `repos:` block as
+  ground truth — `clang-revival` turned out to be enabled on `wrynose` but disabled on `master` (verified live,
+  not assumed), a distinction that would have been easy to get wrong hand-deriving it from `matrix.yml` alone.
+- **The schema files exist, just not where revision 1 assumed.** They are not shipped in the `bitbake-setup`
+  pip package (confirmed: no `*.schema.json` anywhere under its installed files) — they live in the actual
+  `bitbake` git repository, `setup-schema/bitbake-setup.schema.json` and `setup-schema/layers.schema.json`
+  (`https://git.openembedded.org/bitbake/`). All 11 generated files validate cleanly against the real schema.
+- **Three real, permanent differences found running the first genuine kas-vs-bitbake-setup comparison** (not
+  three bugs — each is a direct, unavoidable consequence of `oe-fragments`/`bb-layers` being flat lists with no
+  way to condition an entry on which `oe-fragments-one-of` choice gets made, given one JSON file covers every
+  machine in a `(release, ros_distro)` group):
+  1. `oeros/allow-commercial-licenses` is enabled unconditionally per group, not just for Raspberry Pi
+     machines within it — the alternative (per-machine JSON files) would lose the picker entirely.
+  2. `bb-layers` is the union of every machine's layers in the group, confirmed live to be an exact superset of
+     any single kas cell's `BBLAYERS` (nothing missing, only extra machines' layers added) — not merely similar.
+  3. `TEMPLATECONF` has no bitbake-setup equivalent (§ 1.6, unchanged from revision 1) — present via kas,
+     absent via bitbake-setup, both correctly so.
+  `scripts/validate-equivalence.py` gained `--ignore-vars` for exactly this kind of documented, expected
+  difference, and path-suffix-aware comparison for `BBLAYERS` specifically (exact-string comparison can never
+  pass across two tools that never share a checkout root, independent of the above).
+- **Source naming was made internally consistent**: kas's own `repos:` keys are short ad hoc names (`ros`,
+  `clang`, `raspberrypi`); the pre-existing `oeros-master-rolling.conf.json` already used `meta-`-prefixed names
+  for most of them, so the generator maps kas's names onto that convention rather than mixing both styles
+  across the registry.
+- **One pre-existing inconsistency in the hand-authored `oeros-master-rolling.conf.json` was corrected, not
+  preserved**: it pinned `meta-qt5` for the `rolling` ROS distro, but every real `oeros-master-rolling-*.yml`
+  kas file has always used `qt6` for `rolling` — the two were never reconciled before this generator existed.
+  Regenerating from the same `matrix.yml` that drives the kas side fixes this by construction.
 
 ## 0. Summary of what was verified, up front
 
