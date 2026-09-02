@@ -1,0 +1,156 @@
+# Source of truth for the kas/oeros-<release>-<ros-distro>-<machine>.yml matrix.
+#
+# Generated files are produced by scripts/generate-kas.py and must never be hand-edited; edit this
+# file and regenerate instead. See docs/kas-to-fragments-migration-spec.md section 3 for the design
+# this schema follows, and section 5 (Migration Plan, Phase 2) for how it's meant to be used.
+#
+# Phase 2 status: this file and the generator reproduce today's kas/ tree byte-for-byte (modulo the
+# two documented exceptions below), for every release including the still-legacy-shaped wrynose and
+# master cells. Phase 3 will change what the generator emits for fragment-capable releases (wrynose,
+# master) to the reduced OE_FRAGMENTS-based shape; scarthgap's output does not change in Phase 3.
+
+schema_version: 1
+
+releases:
+  scarthgap:
+    fragment_capable: false
+    yocto_file: kas/yocto/scarthgap.yml
+    oe_core_commit: "ece80784b493c8b7493478fa2ba0dc1d6d80aa79"
+    bitbake_branch: "2.8"
+    bitbake_commit: "82abbfcdbda949851a03bb2cb2049ea689564ad6"
+    meta_openembedded_commit: "b0c2c648a1af89e7a8dd4c2ec841f3bc0ed0ccb9"
+    # Applied to every scarthgap cell's repos: block.
+    default_source_overrides:
+      lts-mixins: {branch: "scarthgap/rust"}
+    # scarthgap always additionally includes kas/layer/lts-mixins.yml, appended after the qt
+    # addon include -- the only release for which this is true.
+    extra_includes: [kas/layer/lts-mixins.yml]
+
+  wrynose:
+    fragment_capable: true
+    yocto_file: kas/yocto/wrynose.yml
+    oe_core_commit: "06dd66e6220e5ce4ed4b9af4d8231ae5f0a8ce80"
+    bitbake_branch: "2.18"
+    bitbake_commit: "22021758e66737bcf68dfd2b74adc6a0cb1d42d9"
+    meta_openembedded_commit: "100027977216601000cbefc42c2ff6cf667e7b5e"
+    extra_layers: ["meta-yocto"]   # poky/meta-yocto-bsp -- still-necessary-ness unverified, spec §6
+    default_source_overrides:
+      zenoh: {branch: "master"}
+
+  master:
+    fragment_capable: true
+    yocto_file: kas/yocto/master.yml
+    # No pinned commits: master.yml tracks the floating branch directly.
+    default_source_overrides:
+      realsense: {branch: "wrynose"}
+
+# qt_layer is intrinsic to each ROS distro in the current tree, not a freely-selectable per-cell
+# addon: every cell for a given ros_distro uses the same Qt version across every release and
+# machine (verified exhaustively against all 47 currently active top-level files).
+ros_distros:
+  humble:
+    family: ros2
+    file: kas/ros2/humble.yml
+    qt_layer: qt5
+  jazzy:
+    family: ros2
+    file: kas/ros2/jazzy.yml
+    qt_layer: qt5
+  kilted:
+    family: ros2
+    file: kas/ros2/kilted.yml
+    qt_layer: qt5
+  lyrical:
+    family: ros2
+    file: kas/ros2/lyrical.yml
+    qt_layer: qt6
+  rolling:
+    family: ros2
+    file: kas/ros2/rolling.yml
+    qt_layer: qt6
+  noetic:
+    family: ros1
+    file: kas/ros1/noetic.yml
+    qt_layer: qt5
+
+machines:
+  - qemux86-64
+  - qemuarm64
+  - raspberrypi0-2w-64
+  - raspberrypi4-64
+  - raspberrypi5
+  - jetson-agx-xavier-devkit
+  - jetson-orin-nano-devkit
+  - polarfire-soc-icicle-kit-es
+
+# One entry per (release, ros_distro), each listing every machine currently built for that
+# combination plus any source_overrides on top of the release's default_source_overrides. Machine
+# lists are deliberately non-uniform -- eg wrynose/kilted has no raspberrypi4-64 cell -- and are
+# taken verbatim from what's in the tree today, not from what "should" theoretically exist.
+cells:
+  - release: scarthgap
+    ros_distro: humble
+    machines: [qemux86-64, raspberrypi0-2w-64, raspberrypi4-64, raspberrypi5]
+  - release: scarthgap
+    ros_distro: jazzy
+    machines: [qemux86-64, raspberrypi0-2w-64, raspberrypi4-64, raspberrypi5]
+  - release: scarthgap
+    ros_distro: kilted
+    machines: [qemux86-64, raspberrypi0-2w-64, raspberrypi4-64, raspberrypi5]
+  - release: scarthgap
+    ros_distro: lyrical
+    machines: [qemux86-64, raspberrypi0-2w-64, raspberrypi4-64, raspberrypi5]
+  - release: scarthgap
+    ros_distro: rolling
+    machines: [qemux86-64, raspberrypi0-2w-64, raspberrypi4-64, raspberrypi5]
+
+  - release: wrynose
+    ros_distro: humble
+    machines: [qemux86-64, raspberrypi4-64, raspberrypi5]
+  - release: wrynose
+    ros_distro: jazzy
+    machines: [qemux86-64, raspberrypi4-64, raspberrypi5]
+  - release: wrynose
+    ros_distro: kilted
+    machines: [qemux86-64, raspberrypi5]
+    source_overrides:
+      qt5: {branch: "master"}
+  - release: wrynose
+    ros_distro: lyrical
+    machines: [qemux86-64, raspberrypi5]
+  - release: wrynose
+    ros_distro: rolling
+    machines: [qemux86-64, raspberrypi4-64, raspberrypi5]
+  - release: wrynose
+    ros_distro: noetic
+    machines: [raspberrypi5]
+    source_overrides:
+      zenoh: {layers: {meta-zenoh: disabled}}
+
+  - release: master
+    ros_distro: humble
+    machines: [qemux86-64, raspberrypi4-64, raspberrypi5]
+  - release: master
+    ros_distro: jazzy
+    machines: [qemux86-64, raspberrypi4-64, raspberrypi5]
+  - release: master
+    ros_distro: kilted
+    machines: [qemux86-64, raspberrypi5]
+  - release: master
+    ros_distro: lyrical
+    machines: [qemux86-64, raspberrypi5]
+  - release: master
+    ros_distro: rolling
+    machines: [qemux86-64, raspberrypi4-64, raspberrypi5]
+
+# Not part of the generated matrix (it's a personal development shortcut, not a product release
+# combination -- spec §1.7) but re-derivable as a one-off:
+#   scripts/generate-kas.py --one-off --release master --ros-distro rolling --machine qemux86-64 \
+#       --qt-override qt6
+# to reproduce kas/oeros-devel.yml without it drifting from the matrix's underlying pins.
+
+# `scripts/generate-kas.py --check` reproduces every committed kas/oeros-*.yml file (except
+# oeros-devel.yml, deliberately not generated -- see above) byte-for-byte. Two pre-existing
+# discrepancies were found and fixed directly in the tree rather than worked around here: the
+# double-dot typo in oeros-scarthgap-lyrical-raspberrypi4-64..yml (renamed) and a stray trailing
+# blank line in oeros-wrynose-noetic-raspberrypi5.yml (removed).

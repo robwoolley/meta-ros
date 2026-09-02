@@ -12,4 +12,3 @@ repos:
     branch: "master"
     layers:
       meta-zenoh: disabled
-
