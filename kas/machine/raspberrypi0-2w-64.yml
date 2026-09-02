@@ -12,3 +12,15 @@ local_conf_header:
   raspberrypi: |
     # Set the accepted license flags to allow the use of commercial graphics drivers.
     LICENSE_FLAGS_ACCEPTED += "commercial synaptics-killswitch"
+  # machine/raspberrypi0-2w-64 and oeros/allow-commercial-licenses duplicate the machine:/local_conf_header
+  # content above on fragment-capable releases -- see kas/oeros-distro.yml for why. Harmless, unused
+  # content on scarthgap, which also includes this file but has no fragment support. Not currently
+  # used by any fragment-capable cell (spec matrix.yml); added for consistency with the other
+  # Raspberry Pi machine files and so one exists if a fragment-capable cell for it is added later.
+  #
+  # Key name "raspberrypi0-2w-64-fragments", not "fragments": local_conf_header keys are merged as
+  # one flat dict across every included kas file, so a name reused elsewhere (including the
+  # "raspberrypi" key just above, in this very file) would silently overwrite instead of both
+  # applying.
+  raspberrypi0-2w-64-fragments: |
+    OE_FRAGMENTS += "machine/raspberrypi0-2w-64 oeros/allow-commercial-licenses"

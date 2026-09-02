@@ -4,15 +4,16 @@
 # Generate kas/oeros-<release>-<ros-distro>-<machine>.yml from matrix.yml.
 #
 # Phase 2 (docs/kas-to-fragments-migration-spec.md section 5) reproduced today's kas/ tree
-# byte-for-byte for every release. Phase 3 adds a second local_conf_header key,
-# OE_FRAGMENTS += "...", for fragment_capable releases (wrynose, master) alongside their existing
-# includes, which are kept unchanged -- kas has no way to include a file's repos: block without
-# also getting its local_conf_header/machine:/distro: content, and splitting those shared files
-# (also used by scarthgap) to avoid the resulting redundancy was judged not worth the added risk
-# to scarthgap. The redundancy is harmless and verified live (spec section 4, Appendix): a
-# built-in machine/distro fragment agreeing with kas's own weak machine:/distro: keys, and a
-# fragment re-applying a :remove/+=/:append kas's local_conf_header already applied, both resolve
-# to the same final value with no conflict. scarthgap's output is unaffected either way.
+# byte-for-byte for every release. For fragment_capable releases (wrynose, master), OE_FRAGMENTS
+# enablement lives in the subfile that already owns the corresponding concern, not in the
+# generated top-level file: kas/oeros-distro.yml carries distro/oeros + oeros/common,
+# kas/yocto/<release>.yml carries that release's QA-relax fragment (safe to fully replace its old
+# ERROR_QA:remove local_conf_header there, since that file is never shared with scarthgap), and
+# each kas/machine/<name>.yml carries machine/<name> plus any machine-specific fragments (added
+# alongside its existing local_conf_header, not replacing it, since machine files *are* shared
+# with scarthgap -- verified live that setting OE_FRAGMENTS is completely inert there: scarthgap's
+# oe-core has zero references to OE_FRAGMENTS or addfragments anywhere in its source). This
+# generator therefore emits no local_conf_header of its own for any release.
 #
 # Usage:
 #   scripts/generate-kas.py [--check] [--matrix PATH] [--out-dir DIR]
@@ -31,15 +32,7 @@ import yaml
 HEADER_VERSION = 14
 
 
-def oe_fragments_for(release, release_data, machine, machine_data):
-    fragments = [f"machine/{machine}", "distro/oeros", "oeros/common"]
-    if release_data.get("qa_fragment"):
-        fragments.append(release_data["qa_fragment"])
-    fragments.extend(machine_data.get("fragments", []))
-    return fragments
-
-
-def render_cell(release, release_data, ros_distro, ros_data, machine, machine_data, source_overrides):
+def render_cell(release, release_data, ros_distro, ros_data, machine, source_overrides):
     includes = [release_data["yocto_file"], ros_data["file"], f"kas/machine/{machine}.yml", "kas/common.yml"]
     includes.append(f"kas/layer/{ros_data['qt_layer']}.yml")
     includes.extend(release_data.get("extra_includes", []))
@@ -51,13 +44,6 @@ def render_cell(release, release_data, ros_distro, ros_data, machine, machine_da
 
     lines = ["header:", f"  version: {HEADER_VERSION}", "  includes:"]
     lines.extend(f"    - {inc}" for inc in includes)
-
-    if release_data.get("fragment_capable"):
-        fragments = oe_fragments_for(release, release_data, machine, machine_data)
-        lines.append("")
-        lines.append("local_conf_header:")
-        lines.append("  fragments: |")
-        lines.append(f'    OE_FRAGMENTS += "{" ".join(fragments)}"')
 
     if source_overrides:
         lines.append("")
@@ -85,7 +71,6 @@ def merged_overrides(release_data, cell_overrides):
 def generate_all(matrix):
     releases = matrix["releases"]
     ros_distros = matrix["ros_distros"]
-    machines = matrix["machines"]
     out = {}
     for cell in matrix["cells"]:
         release = cell["release"]
@@ -95,8 +80,7 @@ def generate_all(matrix):
         overrides = merged_overrides(release_data, cell.get("source_overrides"))
         for machine in cell["machines"]:
             filename = f"kas/oeros-{release}-{ros_distro}-{machine}.yml"
-            machine_data = machines.get(machine) or {}
-            out[filename] = render_cell(release, release_data, ros_distro, ros_data, machine, machine_data, overrides)
+            out[filename] = render_cell(release, release_data, ros_distro, ros_data, machine, overrides)
     return out
 
 

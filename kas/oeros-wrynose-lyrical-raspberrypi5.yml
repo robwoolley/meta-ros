@@ -8,10 +8,6 @@ header:
     - kas/layer/qt6.yml
     - kas/oeros-distro.yml
 
-local_conf_header:
-  fragments: |
-    OE_FRAGMENTS += "machine/raspberrypi5 distro/oeros oeros/common oeros/qa/allow-license-exists oeros/allow-commercial-licenses"
-
 repos:
   zenoh:
     branch: "master"

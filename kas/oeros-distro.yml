@@ -13,3 +13,16 @@ repos:
   oeros:
     url: "https://github.com/robwoolley/meta-oeros.git"
     path: "layers/meta-oeros"
+
+# distro/oeros duplicates the distro: key above (built-in fragments accept an existing weak
+# assignment without conflict -- verified live), kept for parity with the bitbake-setup and
+# manual-git entry paths, which have no distro: key of their own and rely on this fragment alone.
+# oeros/common is every fragment-capable cell's always-on baseline (spec section 1.6).
+#
+# Key name "oeros-distro-fragments", not "fragments": kas merges local_conf_header as one flat
+# dict across every included file, so a key reused in another file would silently overwrite this
+# one's value (or be overwritten by it) instead of both applying -- caught live, not assumed. Every
+# file in kas/ that contributes an OE_FRAGMENTS line must use a name unique across the whole tree.
+local_conf_header:
+  oeros-distro-fragments: |
+    OE_FRAGMENTS += "distro/oeros oeros/common"

@@ -38,6 +38,9 @@ repos:
     layers:
       meta-clang-revival: "disabled"
 
+# Key name "master-fragments", not "fragments": local_conf_header keys are merged as one flat
+# dict across every included kas file, so a name reused elsewhere would silently overwrite (or be
+# overwritten by) that file's value instead of both applying -- see kas/oeros-distro.yml.
 local_conf_header:
-  distro: |
-    ERROR_QA:remove = "license-format"
+  master-fragments: |
+    OE_FRAGMENTS += "oeros/qa/allow-license-format"

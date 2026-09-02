@@ -2,3 +2,14 @@ header:
   version: 14
 
 machine: "qemux86-64"
+
+# machine/qemux86-64 duplicates the machine: key above; see kas/oeros-distro.yml for why (this
+# only matters on fragment-capable releases -- harmless, unused content otherwise, eg on scarthgap,
+# which also includes this file but has no fragment support to read OE_FRAGMENTS at all).
+#
+# Key name "qemux86-64-fragments", not "fragments": local_conf_header keys are merged as one flat
+# dict across every included kas file, so a name reused elsewhere would silently overwrite (or be
+# overwritten by) that file's value instead of both applying.
+local_conf_header:
+  qemux86-64-fragments: |
+    OE_FRAGMENTS += "machine/qemux86-64"
