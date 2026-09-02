@@ -47,7 +47,13 @@ inherit pkgconfig
 # moveit-core hardcodes an octomap upper version bound (<1.10.0) that
 # predates this layer set's octomap (1.10.0); relax it rather than pin an
 # older octomap system-wide.
+#
+# Also: Boost 1.90 removed the compiled boost_system stub library and its
+# CMake package entirely -- it's been header-only since 1.69, and upstream
+# projects generally just drop the component. See
+# https://github.com/gnss-sdr/gnss-sdr/issues/972.
 do_configure:prepend() {
     sed -i -e 's/find_package(octomap 1.9.7...<1.10.0 REQUIRED)/find_package(octomap 1.9.7 REQUIRED)/' \
         ${S}/CMakeLists.txt
+    sed -i -e '/^  system$/d' ${S}/ConfigExtras.cmake
 }
