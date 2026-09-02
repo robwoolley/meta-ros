@@ -1,6 +1,6 @@
 # Migrating meta-ros kas configurations to native bitbake configuration fragments
 
-Status: draft specification, revision 4 (2026-09-02) — Phase 0 and Phase 1 of § 5 are now implemented and
+Status: draft specification, revision 5 (2026-09-02) — Phases 0 through 3 of § 5 are now implemented and
 committed (locally) against `meta-ros-oe-fragments`, `meta-oeros`, and `meta-ros`; this document is being kept
 in sync with that work as it proceeds, not just revised in response to review comments.
 Scope: `meta-ros` `build` branch `kas/` tree (this repository), `meta-oeros`, `meta-ros-common` and the ROS
@@ -50,6 +50,41 @@ commands.
   `:pn-<recipe>` override is a bbappend candidate, not a fragment candidate. Applied immediately to the
   `python3`/tk case (no new plumbing needed, done); `clang`/`qtbase-native` remain deferred, now for this reason
   in addition to the original behavior-change concern (§ 2.2, § 2.3).
+
+**Revision 5 changes** (Phase 2 and Phase 3 implemented; one more fragment/bbappend correction, one real
+validation-tooling bug, and one serious operational hazard found and fixed during implementation):
+- **Phase 2 (§ 5) is done**: `matrix.yml` + `scripts/generate-kas.py` reproduce every currently-committed
+  `kas/oeros-*.yml` file byte-for-byte (`--check` passes with zero drift), fixing two pre-existing tree defects
+  (the `raspberrypi4-64..yml` double-dot typo, a stray trailing blank line in the noetic file) along the way.
+- **Phase 3 (§ 5) is done for the "add `OE_FRAGMENTS`" half.** All 27 wrynose/master top-level files now carry
+  a second `local_conf_header` key, `OE_FRAGMENTS += "..."`, alongside their existing (unchanged) includes.
+  **This deviates from this document's own earlier § 3.2 wording** ("the emitted file's `local_conf_header` is
+  reduced to one key") — achieving a true reduction would mean splitting `kas/common.yml`, the per-release
+  `kas/yocto/*.yml`, and the Raspberry Pi `kas/machine/*.yml` files (all shared with scarthgap) into
+  repos-only and `local_conf_header`-only halves, which was judged not worth the added risk to files scarthgap
+  depends on. The chosen design keeps every existing include (still needed for its `repos:` block) and accepts
+  that some of its `local_conf_header`/`machine:`/`distro:` content now duplicates what a fragment also does.
+  Verified, not assumed, to be harmless: built-in fragments agreeing with kas's own weak `machine:`/`distro:`
+  keys, and a fragment re-applying a `:remove`/`+=`/`:append` kas's own `local_conf_header` already applied,
+  both resolve to the identical final value.
+- **Real bug found in `scripts/extract-config-vars.py`**: `bitbake-getvar -q` does not produce a bare value —
+  `-q`/`--quiet` only silences server logging. The tool needed for a bare value is `--value`, found by reading
+  `bitbake-getvar --help` after the first real run's output failed to parse, not by continuing to guess.
+- **Real bug found in `scripts/validate-equivalence.py`**: exact-string comparison is wrong for
+  `DISTRO_FEATURES`/`IMAGE_FEATURES`/`INHERIT`/`INHERIT_DISTRO`/`LICENSE_FLAGS_ACCEPTED`/`WARN_QA`/`ERROR_QA` —
+  these are membership lists bitbake itself only ever checks with `bb.utils.contains()`, so the exact-duplicate
+  redundancy the design above intentionally produces would make the tool permanently unable to pass any
+  fragment-capable cell. Fixed to compare these specific variables as whitespace-tokenized sets.
+- **Serious operational hazard found and fixed: `kas checkout` will run `git checkout` inside whatever
+  directory it finds at a repo's configured path — including a symlink to a real, separately-managed
+  repository.** Symlinking `~/Projects/meta-ros` and `~/Projects/meta-oeros` into a `KAS_WORK_DIR` (to make
+  `kas checkout` use local, not-yet-pushed commits instead of cloning from GitHub) let a later `kas checkout`
+  force-move both repos' local `wrynose` branches backward to old, cached/pinned commits — inside the real
+  project directories, not a scratch copy. Both were recovered (`git merge --ff-only` back to the correct
+  commit; the later commits were still reachable and nothing was lost), and the symlinks were replaced with
+  disposable copies for the remainder of this work. **This is now § 4's first operational rule**: never
+  symlink a real, actively-developed repository into a `KAS_WORK_DIR` that anything will run `kas checkout`
+  against again — use a disposable copy, or push to a scratch remote/branch instead.
 
 ## 0. Summary of what was verified, up front
 
