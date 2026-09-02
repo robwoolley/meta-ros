@@ -8,6 +8,11 @@ for a given release/ROS-distro/machine combination -- they are different front e
 underlying repos and [configuration fragments](https://docs.yoctoproject.org/dev/ref-manual/fragments.html),
 not different builds.
 
+This page is the end-user build guide. If you're maintaining this repository instead --
+regenerating files, adding a release/ROS-distro/machine, or reading a CI run -- see
+[`docs/scripts-and-ci-guide.md`](../docs/scripts-and-ci-guide.md); for the underlying design and
+why it's shaped this way, see [`docs/design.md`](../docs/design.md).
+
 ## Supported combinations
 
 `scarthgap` is Yocto's current LTS release and is fully supported, using the plain kas path below
