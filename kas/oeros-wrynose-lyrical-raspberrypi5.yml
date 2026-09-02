@@ -6,6 +6,7 @@ header:
     - kas/machine/raspberrypi5.yml
     - kas/common.yml
     - kas/layer/qt6.yml
+    - kas/oeros-distro.yml
 
 repos:
   zenoh:

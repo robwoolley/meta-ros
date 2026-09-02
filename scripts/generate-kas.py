@@ -30,6 +30,11 @@ def render_cell(release, release_data, ros_distro, ros_data, machine, source_ove
     includes = [release_data["yocto_file"], ros_data["file"], f"kas/machine/{machine}.yml", "kas/common.yml"]
     includes.append(f"kas/layer/{ros_data['qt_layer']}.yml")
     includes.extend(release_data.get("extra_includes", []))
+    if release_data.get("fragment_capable"):
+        # meta-ros no longer provides its own DISTRO on fragment-capable branches (spec section 1.9);
+        # this must come after ros_data["file"] in the list, since kas resolves same-key conflicts
+        # between included files in favor of whichever is listed last (verified empirically).
+        includes.append("kas/oeros-distro.yml")
 
     lines = ["header:", f"  version: {HEADER_VERSION}", "  includes:"]
     lines.extend(f"    - {inc}" for inc in includes)
@@ -104,10 +109,13 @@ def main():
                 sys.stdout.writelines(diff)
                 drift = True
         # Files on disk that the matrix no longer accounts for (eg the double-dot typo file).
+        # oeros-devel.yml and oeros-distro.yml are hand-maintained inputs, like yocto/*.yml and
+        # ros1/ros2/*.yml, not generated matrix cells, despite matching the oeros-*.yml glob.
+        hand_maintained = {"oeros-devel.yml", "oeros-distro.yml"}
         for path in sorted((args.out_dir / "kas").glob("oeros-*.yml")):
             rel = str(path.relative_to(args.out_dir))
-            if rel not in generated and path.name != "oeros-devel.yml":
-                print(f"UNEXPECTED (not in matrix.yml, not oeros-devel.yml): {rel}")
+            if rel not in generated and path.name not in hand_maintained:
+                print(f"UNEXPECTED (not in matrix.yml, not hand-maintained): {rel}")
                 drift = True
         sys.exit(1 if drift else 0)
     else:

@@ -1,0 +1,15 @@
+header:
+  version: 14
+
+# meta-ros no longer defines its own DISTRO on the wrynose/master branches (meta-ros1/conf/distro/ros1.conf
+# and meta-ros2/conf/distro/ros2.conf were removed -- see docs/kas-to-fragments-migration-spec.md section 1.9).
+# meta-oeros is the reference distro going forward; this file wires it in and selects it. Included only by
+# fragment-capable (wrynose, master) top-level matrix files -- scarthgap's meta-ros branch still ships its own
+# ros1.conf/ros2.conf and is unaffected by this.
+
+distro: "oeros"
+
+repos:
+  oeros:
+    url: "https://github.com/robwoolley/meta-oeros.git"
+    path: "layers/meta-oeros"
