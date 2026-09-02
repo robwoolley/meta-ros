@@ -157,6 +157,26 @@ bitbake ros-image-core
 Run `bitbake-config-build list-fragments` at any point to see every fragment available from the
 layers currently in `bblayers.conf`, with its description.
 
+## CI
+
+GitHub Actions (`.github/workflows/config-check.yml`) is the primary CI system; GitLab CI
+(`.gitlab-ci.yml`) is also supported. Both run a `config-check` job on every push/PR to `build` that
+verifies the generated `kas/oeros-*.yml` files and this README's table haven't drifted from
+`matrix.yml` (`scripts/generate-kas.py --check` and `scripts/check-readme-table.py`) -- kept
+separate from the actual (manual, per-combination) build so it runs automatically and cheaply.
+GitLab CI also has a manual `build-job` that runs a real `kas build`.
+
+**Running this in your own fork**: `config-check` needs no secrets, tokens, or org-specific
+configuration on either system, so it works unmodified in a personal fork. Two things to be aware
+of:
+- GitHub disables Actions on forks by default -- enable them once under the fork's **Actions** tab,
+  or trigger `config-check` manually via its `workflow_dispatch` trigger.
+- GitLab's `build-job` pulls its build image via the `CROPS_IMAGE` CI/CD variable, which defaults
+  to `oeros`'s own container registry path. If that path isn't reachable from your fork's CI (eg no
+  access to the upstream registry), override `CROPS_IMAGE` with your own pullable image under
+  **Settings > CI/CD > Variables**, rather than editing `.gitlab-ci.yml`. `config-check` doesn't use
+  this image and is unaffected either way.
+
 ## Writing the image
 
 If using [Balena Etcher](https://etcher.balena.io/), you may provide it with the `.wic.bz2` file

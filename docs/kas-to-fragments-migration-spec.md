@@ -199,6 +199,18 @@ from the existing build pipeline and to support both GitHub and GitLab):
   `bitbake-setup init --non-interactive` + Tier 2 comparison) into CI — this needs real network access and a
   toolchain, unlike the lightweight config-check job, and is being treated as a separate follow-up rather than
   bundled into this change.
+- **Fork-friendliness, per explicit user request**: `config-check` (both systems) already needed no secrets,
+  tokens, or org-specific configuration, so it works unmodified in a personal fork as-is. `build-job` (GitLab
+  only, pre-existing) is a different story: its `image:` was `$CI_REGISTRY/oeros/aws-runner/crops-container:latest`
+  — `$CI_REGISTRY` is instance-scoped (eg `registry.gitlab.com`), not project-scoped, so this resolves to the
+  *same* `oeros/aws-runner` image regardless of which namespace forked the repo; a fork's CI would fail to pull
+  it if that registry path isn't reachable to non-oeros accounts. Rather than guess at a specific replacement
+  image (unverified — a web lookup for a public CROPS drop-in image did not turn up a confirmed exact name),
+  the image was pulled out into a `CROPS_IMAGE` CI/CD variable with the existing path kept as its default, so a
+  fork can override it under **Settings > CI/CD > Variables** without editing `.gitlab-ci.yml`. `kas/README.md`
+  gained a new **CI** section documenting this, plus the standalone fact that GitHub disables Actions on forks
+  until the fork owner enables them once (inherent GitHub behavior, not fixable from the workflow file) — the
+  GitHub workflow also gained a `workflow_dispatch` trigger so it can be run manually in that case.
 
 ## 0. Summary of what was verified, up front
 

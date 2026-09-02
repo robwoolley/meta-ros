@@ -1,6 +1,11 @@
-image: $CI_REGISTRY/oeros/aws-runner/crops-container:latest
+image: $CROPS_IMAGE
 
 variables:
+  # Overridable so a fork can point build-job at its own pullable image (eg if the canonical
+  # oeros/aws-runner registry path below isn't reachable from a personal fork's CI) without
+  # editing this file: set CROPS_IMAGE as a project or group CI/CD variable (Settings > CI/CD >
+  # Variables) in the fork instead. config-check below doesn't use this image at all.
+  CROPS_IMAGE: $CI_REGISTRY/oeros/aws-runner/crops-container:latest
   OE_RELEASE_SERIES:
     description: "The Yocto Project release"
     value: master
