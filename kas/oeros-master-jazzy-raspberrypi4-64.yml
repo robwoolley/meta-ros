@@ -8,6 +8,10 @@ header:
     - kas/layer/qt5.yml
     - kas/oeros-distro.yml
 
+local_conf_header:
+  fragments: |
+    OE_FRAGMENTS += "machine/raspberrypi4-64 distro/oeros oeros/common oeros/qa/allow-license-format oeros/allow-commercial-licenses"
+
 repos:
   realsense:
     branch: "wrynose"

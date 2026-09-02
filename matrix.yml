@@ -36,6 +36,7 @@ releases:
     extra_layers: ["meta-yocto"]   # poky/meta-yocto-bsp -- still-necessary-ness unverified, spec §6
     default_source_overrides:
       zenoh: {branch: "master"}
+    qa_fragment: oeros/qa/allow-license-exists
 
   master:
     fragment_capable: true
@@ -43,6 +44,7 @@ releases:
     # No pinned commits: master.yml tracks the floating branch directly.
     default_source_overrides:
       realsense: {branch: "wrynose"}
+    qa_fragment: oeros/qa/allow-license-format
 
 # qt_layer is intrinsic to each ROS distro in the current tree, not a freely-selectable per-cell
 # addon: every cell for a given ros_distro uses the same Qt version across every release and
@@ -73,15 +75,22 @@ ros_distros:
     file: kas/ros1/noetic.yml
     qt_layer: qt5
 
+# fragments here are extra OE_FRAGMENTS entries a fragment-capable cell for this machine should
+# enable, beyond machine/<name> itself -- eg the Raspberry Pi commercial license flags. Machines
+# not yet used by any fragment-capable cell (jetson-*, polarfire-*) are listed with an empty
+# fragments list; fill in when a fragment-capable cell for one of them is added.
 machines:
-  - qemux86-64
-  - qemuarm64
-  - raspberrypi0-2w-64
-  - raspberrypi4-64
-  - raspberrypi5
-  - jetson-agx-xavier-devkit
-  - jetson-orin-nano-devkit
-  - polarfire-soc-icicle-kit-es
+  qemux86-64: {}
+  qemuarm64: {}
+  raspberrypi0-2w-64:
+    fragments: [oeros/allow-commercial-licenses]
+  raspberrypi4-64:
+    fragments: [oeros/allow-commercial-licenses]
+  raspberrypi5:
+    fragments: [oeros/allow-commercial-licenses]
+  jetson-agx-xavier-devkit: {}
+  jetson-orin-nano-devkit: {}
+  polarfire-soc-icicle-kit-es: {}
 
 # One entry per (release, ros_distro), each listing every machine currently built for that
 # combination plus any source_overrides on top of the release's default_source_overrides. Machine
