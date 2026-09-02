@@ -80,17 +80,25 @@ ros_distros:
 # not yet used by any fragment-capable cell (jetson-*, polarfire-*) are listed with an empty
 # fragments list; fill in when a fragment-capable cell for one of them is added.
 machines:
-  qemux86-64: {}
-  qemuarm64: {}
+  qemux86-64:
+    description: Machine configuration for running an x86-64 system on QEMU
+  qemuarm64:
+    description: Machine configuration for running an ARMv8 system on QEMU
   raspberrypi0-2w-64:
+    description: Machine configuration for Raspberry Pi Zero 2W (64-bit)
     fragments: [oeros/allow-commercial-licenses]
   raspberrypi4-64:
+    description: Machine configuration for Raspberry Pi 4 (64-bit)
     fragments: [oeros/allow-commercial-licenses]
   raspberrypi5:
+    description: Machine configuration for Raspberry Pi 5
     fragments: [oeros/allow-commercial-licenses]
-  jetson-agx-xavier-devkit: {}
-  jetson-orin-nano-devkit: {}
-  polarfire-soc-icicle-kit-es: {}
+  jetson-agx-xavier-devkit:
+    description: Machine configuration for the NVIDIA Jetson AGX Xavier devkit
+  jetson-orin-nano-devkit:
+    description: Machine configuration for the NVIDIA Jetson Orin Nano devkit
+  polarfire-soc-icicle-kit-es:
+    description: Machine configuration for the Microchip PolarFire SoC Icicle Kit
 
 # One entry per (release, ros_distro), each listing every machine currently built for that
 # combination plus any source_overrides on top of the release's default_source_overrides. Machine

@@ -33,12 +33,34 @@ SET_SEMANTIC_VARS = {
     "WARN_QA", "ERROR_QA",
 }
 
+# BBLAYERS entries are absolute paths, and kas vs bitbake-setup (or two different KAS_WORK_DIRs)
+# never share a checkout root, so exact string comparison can never pass even when the actual
+# layer set is identical. Compare by each path's trailing "<layer-dir>" or "<repo>/<layer-dir>"
+# component instead -- found live comparing a real kas checkout against a real bitbake-setup one
+# for the same nominal cell, where every entry differed only in its checkout-root prefix.
+PATH_SUFFIX_VARS = {"BBLAYERS"}
+
+
+def bblayers_suffix(path):
+    # ".../layers/meta-clang" -> "meta-clang"; ".../layers/meta-ros/meta-ros-common" ->
+    # "meta-ros/meta-ros-common": keep at most the two components after the last "layers" segment,
+    # since that is the part a layer's own identity/subdir is expressed in, on either tool.
+    parts = path.split("/")
+    if "layers" in parts:
+        parts = parts[parts.index("layers") + 1:]
+    return "/".join(parts[-2:]) if len(parts) > 1 else "/".join(parts)
+
 
 def values_equal(name, b, c):
     if b == c:
         return True
-    if name in SET_SEMANTIC_VARS and b.get("defined") and c.get("defined"):
+    if not (b.get("defined") and c.get("defined")):
+        return False
+    if name in SET_SEMANTIC_VARS:
         return set(b.get("value", "").split()) == set(c.get("value", "").split())
+    if name in PATH_SUFFIX_VARS:
+        norm = lambda v: {bblayers_suffix(p) for p in v.split()}
+        return norm(b.get("value", "")) == norm(c.get("value", ""))
     return False
 
 
