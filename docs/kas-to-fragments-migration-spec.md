@@ -1,6 +1,6 @@
 # Migrating meta-ros kas configurations to native bitbake configuration fragments
 
-Status: draft specification, revision 7 (2026-09-02) — Phases 0 through 4 of § 5 are now implemented and
+Status: draft specification, revision 8 (2026-09-02) — Phases 0 through 5 of § 5 are now implemented and
 committed (locally) against `meta-ros-oe-fragments`, `meta-oeros`, and `meta-ros`; this document is being kept
 in sync with that work as it proceeds, not just revised in response to review comments.
 Scope: `meta-ros` `build` branch `kas/` tree (this repository), `meta-oeros`, `meta-ros-common` and the ROS
@@ -149,6 +149,30 @@ this correction surfaced):
   other than key identity.
 - `scripts/generate-bitbake-setup.py` needed no change: it reads only each cell's resolved `repos:` block via
   `kas dump`, never `local_conf_header`, so this restructuring doesn't affect it.
+
+**Revision 8 changes** (Phase 5 implemented, and a real bug in `generate-bitbake-setup.py` found writing its
+documentation, independent of revision 7's `local_conf_header` restructuring):
+- **Phase 5 (§ 5) is done**: `kas/README.md` rewritten to cover all three entry paths, with the "supported
+  combinations" table generated from `matrix.yml` by the new `scripts/generate-matrix-table.py` rather than
+  hand-maintained — the previous README's own staleness (documenting `kirkstone`, a release with no
+  `oeros-kirkstone-*.yml` file ever present in this repo) is exactly the kind of drift this was meant to
+  prevent going forward.
+- **Real, separate bug found in `scripts/generate-bitbake-setup.py`** while verifying the README's
+  bitbake-setup commands against the real registry output: `kas dump` does not materialize a repo's *inherited*
+  branch (from a `yocto/<release>.yml`'s `defaults.repos.branch`) into that repo's own entry — only an explicit
+  per-repo override appears as a `branch:` key at all (confirmed live: `kas/oeros-wrynose-jazzy-qemux86-64.yml`'s
+  dumped `ros`/`oeros` entries have no `branch:` key despite needing to resolve to `wrynose`). The generator's
+  fallback for a missing `branch:` was hardcoded to the literal string `"master"` — correct by coincidence for
+  every `master-*.conf.json`, silently wrong for every `wrynose-*.conf.json` (every source except ones with a
+  real explicit override, eg `meta-zenoh`, was pinned to `master` instead of `wrynose`). Fixed to use the
+  release's own name as the fallback default branch, matching every `kas/yocto/<release>.yml`'s
+  `defaults.repos.branch` value today (verified for both `wrynose` and `master`); all 11 registry files
+  regenerated and republished on both `meta-oeros` branches.
+- **One documented, not silently worked around, limitation**: `bitbake-setup init <name> <choice>` using
+  registry-based lookup did not accept a machine choice as a second positional in testing (it tried to resolve
+  the choice as another config identifier and failed) — the README's registry-based example is therefore
+  interactive-only; the direct-file-path form already verified end to end in Phase 4 is offered as the
+  non-interactive alternative instead of asserting an unverified registry-based non-interactive syntax.
 
 ## 0. Summary of what was verified, up front
 
