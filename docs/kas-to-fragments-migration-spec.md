@@ -1,6 +1,6 @@
 # Migrating meta-ros kas configurations to native bitbake configuration fragments
 
-Status: draft specification, revision 6 (2026-09-02) — Phases 0 through 4 of § 5 are now implemented and
+Status: draft specification, revision 7 (2026-09-02) — Phases 0 through 4 of § 5 are now implemented and
 committed (locally) against `meta-ros-oe-fragments`, `meta-oeros`, and `meta-ros`; this document is being kept
 in sync with that work as it proceeds, not just revised in response to review comments.
 Scope: `meta-ros` `build` branch `kas/` tree (this repository), `meta-oeros`, `meta-ros-common` and the ROS
@@ -122,6 +122,33 @@ comparison):
   preserved**: it pinned `meta-qt5` for the `rolling` ROS distro, but every real `oeros-master-rolling-*.yml`
   kas file has always used `qt6` for `rolling` — the two were never reconciled before this generator existed.
   Regenerating from the same `matrix.yml` that drives the kas side fixes this by construction.
+
+**Revision 7 changes** (§ 3.2/§ 5's kas-side fragment placement corrected on maintainer review, plus a real bug
+this correction surfaced):
+- **`OE_FRAGMENTS` enablement moved out of the generated top-level file into the subfile that already owns each
+  concern**, rather than the generator synthesizing one combined line: `kas/oeros-distro.yml` carries
+  `distro/oeros`/`oeros/common`, `kas/yocto/<release>.yml` carries that release's QA fragment, and
+  `kas/machine/<name>.yml` carries `machine/<name>` plus any machine-specific fragment. This mirrors how every
+  other per-concern setting (`repos:`, `machine:`/`distro:`, existing `local_conf_header`) already lives in
+  exactly one of these files, not in the generated top-level file. `kas/oeros-distro.yml` and
+  `kas/yocto/wrynose.yml`/`master.yml` are never included by scarthgap, so their old `ERROR_QA:remove`
+  `local_conf_header` is now fully **replaced**, not left redundant — a real reduction for those two files,
+  unlike `kas/machine/*.yml` which *is* shared with scarthgap and still only gains content alongside the
+  existing `LICENSE_FLAGS_ACCEPTED` block (verified live: `OE_FRAGMENTS` is completely inert on scarthgap,
+  whose oe-core has zero references to `OE_FRAGMENTS`/`addfragments` anywhere in its source). The generated
+  top-level file itself now carries no `local_conf_header` at all for fragment-capable releases, matching its
+  Phase 2 shape exactly.
+- **Real bug this surfaced**: every new `local_conf_header` entry was initially named the identical key,
+  `"fragments"`. kas merges `local_conf_header` as one flat dict across every included file, so identically-named
+  keys do not concatenate — whichever included file is processed last silently wins, and the other three were
+  being dropped entirely (confirmed live via `kas dump` before the fix: only `oeros-distro.yml`'s line
+  survived in the merged output). Fixed by giving every fragment-carrying key a name unique across the whole
+  `kas/` tree (`oeros-distro-fragments`, `wrynose-fragments`, `raspberrypi5-fragments`, etc.) — a general rule
+  now worth stating plainly: **any two included kas files that both want their `local_conf_header` content to
+  apply must never use the same key name**, since kas has no way to distinguish "replace" from "also apply"
+  other than key identity.
+- `scripts/generate-bitbake-setup.py` needed no change: it reads only each cell's resolved `repos:` block via
+  `kas dump`, never `local_conf_header`, so this restructuring doesn't affect it.
 
 ## 0. Summary of what was verified, up front
 
@@ -352,6 +379,15 @@ No construct found anywhere in the tree requires reordering relative to `machine
 themselves, since both `local_conf_header` (today) and fragments (proposed) parse strictly before those two —
 this was the one ordering question genuinely worth checking and it resolves cleanly in favor of the fragment
 approach being a drop-in replacement, *modulo* the two release-specific renamed-variable breaks in § 0.2.
+
+**A separate, purely kas-internal rule, unrelated to fragments, found the hard way in revision 7**:
+`local_conf_header` is merged as one flat dict **across every included file**, keyed by the label under
+`local_conf_header:` in each file (`common`, `raspberrypi`, `qt5`, etc.) — not per-file, per-key. Two different
+included files that happen to use the same key do not both apply: whichever is processed last wins, and the
+other's content is silently dropped, with no warning or error from kas. This matters directly for § 1.9/§ 3's
+distributed `OE_FRAGMENTS` design (§ 5 Phase 3, revision 7): every kas file that contributes an
+`OE_FRAGMENTS += "..."` line must use a key name unique across the whole `kas/` tree, not a shared name like
+`"fragments"` — confirmed live to silently drop three of four contributions before the keys were renamed.
 
 ### 1.9 Making meta-ros distro-agnostic and retiring `DISTRO=ros1`/`DISTRO=ros2`
 
