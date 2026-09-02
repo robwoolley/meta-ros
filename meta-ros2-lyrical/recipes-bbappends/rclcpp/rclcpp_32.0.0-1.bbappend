@@ -35,4 +35,33 @@ do_configure:prepend() {
         -e 's/InvalidServiceNameError(const char \* namespace_, const char \* error_msg, size_t invalid_index)/InvalidServiceNameError(const char * namespace_, const char * error_msg_, size_t invalid_index_)/' \
         -e 's/: NameValidationError("service name", namespace_, error_msg, invalid_index)/: NameValidationError("service name", namespace_, error_msg_, invalid_index_)/' \
         ${S}/include/rclcpp/exceptions/exceptions.hpp
+
+    # wait_set_template.hpp:143/221: the lambdas passed to
+    # sync_add_subscription/sync_remove_subscription redeclare a "mask"
+    # parameter that shadows add_subscription/remove_subscription's own
+    # "mask" parameter -- every sibling method here (add_timer, add_client,
+    # add_service, add_guard_condition, add_waitable, etc.) already renames
+    # its lambda's parameter with an "inner_" prefix to avoid exactly this;
+    # only the subscription pair's *second* lambda parameter (mask) and
+    # add_waitable's second lambda parameter (associated_entity) were missed
+    # upstream. Same fix, same convention already used throughout this file.
+    sed -i \
+        -e 's/const rclcpp::SubscriptionWaitSetMask \& mask)/const rclcpp::SubscriptionWaitSetMask \& inner_mask)/' \
+        -e 's/mask\.include_subscription/inner_mask.include_subscription/g' \
+        -e 's/mask\.include_events/inner_mask.include_events/g' \
+        -e 's/mask\.include_intra_process_waitable/inner_mask.include_intra_process_waitable/g' \
+        -e 's/std::shared_ptr<void> \&\& associated_entity)/std::shared_ptr<void> \&\& inner_associated_entity)/' \
+        -e 's/std::move(associated_entity));/std::move(inner_associated_entity));/' \
+        ${S}/include/rclcpp/wait_set_template.hpp
+
+    # create_subscription.hpp:101: sub_call_back's lambda declares a local
+    # "subscription_topic_stats" that shadows the enclosing function's local
+    # of the same name (the classic weak_ptr::lock()-into-same-name pattern).
+    # Renamed the lambda-local copy; the enclosing scope's original is
+    # untouched.
+    sed -i \
+        -e 's/auto subscription_topic_stats = weak_subscription_topic_stats.lock();/auto locked_subscription_topic_stats = weak_subscription_topic_stats.lock();/' \
+        -e 's/if (subscription_topic_stats) {/if (locked_subscription_topic_stats) {/' \
+        -e 's/subscription_topic_stats->publish_message_and_reset_measurements();/locked_subscription_topic_stats->publish_message_and_reset_measurements();/' \
+        ${S}/include/rclcpp/create_subscription.hpp
 }
