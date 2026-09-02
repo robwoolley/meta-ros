@@ -6,6 +6,12 @@ ROS_EXEC_DEPENDS:remove = "${ROS_UNRESOLVED_DEP-simde}"
 
 inherit python3native
 
+# CMake Error: pkg-config tool not found / Could NOT find PkgConfig -- the
+# recipe's own do_configure never sets up PKG_CONFIG_EXECUTABLE unless
+# pkgconfig.bbclass is inherited (it's what stages pkg-config-native and
+# points CMake's FindPkgConfig at it).
+inherit pkgconfig
+
 EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_PYTHON_INTERFACE=ON"
 
 # ERROR: proxsuite-0.3.6-2-r0 do_package: QA Issue: proxsuite: Files/directories were installed but not shipped in any package:
