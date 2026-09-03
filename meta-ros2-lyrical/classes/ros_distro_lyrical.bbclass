@@ -229,3 +229,38 @@ python() {
     if 'rosidl-default-generators' in (d.getVar('ROS_BUILD_DEPENDS') or '').split():
         d.appendVar('DEPENDS', ' rosidl-cmake-native')
 }
+
+# Unrelated family: ros_ament_cmake.bbclass (meta-ros2/classes, shared by
+# every ROS2 distro) never adds ament_cmake itself to DEPENDS -- it only
+# sets EXTRA_OECMAKE flags and inherits cmake/python3native, relying on
+# package.xml's own buildtool_depend on ament_cmake (or one of its
+# variants: ament_cmake_auto, ament_cmake_ros, ...) to stage it. That
+# holds for most packages, but breaks two different ways: a narrower
+# buildtool variant that doesn't itself pull in plain ament_cmake for
+# *this* package's own configure (rosidlcpp-typesupport-c/cpp declare
+# only ament_cmake_ros_core), or no buildtool_depend on ament_cmake at
+# all despite declaring ament_cmake as the build_type (zenoh-security-tools'
+# ROS_BUILDTOOL_DEPENDS is completely empty -- package.xml only has the
+# <export><build_type>ament_cmake</build_type></export> tag). Both fail
+# hard at configure time: "By not providing Findament_cmake.cmake ...
+# CMake did not find one." Since every ament_cmake-build-type package
+# fundamentally needs ament_cmake's own macros regardless of what
+# package.xml happens to separately declare, stage it unconditionally for
+# anything using this build type rather than trying to enumerate every
+# buildtool variant that might or might not cover it.
+#
+# Exclude the whole ament-cmake-* bootstrap family (not just ament-cmake
+# itself): ament-cmake's own ROS_BUILD_DEPENDS pulls in ament-cmake-core
+# and ament-cmake-export-dependencies, which transitively pull in nearly
+# every other ament-cmake-export-* package via ROS_BUILDTOOL_EXPORT_DEPENDS
+# -- these sub-packages collectively *are* ament_cmake's own constituent
+# macros, still bootstrapping it, so making any of them depend back on
+# ament-cmake-native is circular (confirmed via bitbake -n: "Task
+# ...ament-cmake_2.8.7-3.bb:do_create_recipe_spdx has circular dependency
+# on ...ament-cmake-export-definitions_2.8.7-3.bb:do_create_recipe_spdx").
+python() {
+    if (d.getVar('PN') or '').startswith('ament-cmake'):
+        return
+    if d.getVar('ROS_BUILD_TYPE') == 'ament_cmake':
+        d.appendVar('DEPENDS', ' ament-cmake-native')
+}
