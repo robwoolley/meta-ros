@@ -14,6 +14,12 @@
 # (confirmed: no service_msgs depend at all), fixed the same way any other
 # missing dependency tag would be.
 do_configure:prepend() {
-    sed -i -e '/rosidl_default_generators<\/build_depend>/a\  <depend>service_msgs</depend>' \
-        ${S}/package.xml
+    # Guarded: do_configure:prepend() re-runs on every do_configure
+    # invocation, not just after a fresh do_unpack/do_patch, and the
+    # anchor line is left unmodified by the insertion, so an unguarded
+    # re-run against an already-patched ${S} would insert a duplicate tag.
+    if ! grep -q '<depend>service_msgs</depend>' ${S}/package.xml; then
+        sed -i -e '/rosidl_default_generators<\/build_depend>/a\  <depend>service_msgs</depend>' \
+            ${S}/package.xml
+    fi
 }

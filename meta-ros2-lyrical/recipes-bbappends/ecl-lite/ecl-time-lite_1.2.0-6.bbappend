@@ -19,11 +19,18 @@ inherit ros_insane_dev_so
 CXXFLAGS += "-Wno-error=overloaded-virtual"
 
 do_configure:prepend() {
-    sed -i \
-        -e '/TimeError(const ErrorFlag& flag = UnknownError) : Error(flag) {}/a\
+    # Guarded: the anchor line is left unmodified by the insertion below,
+    # so an unguarded do_configure:prepend() re-run against an
+    # already-patched ${S} (it runs on every do_configure invocation, not
+    # just after a fresh do_unpack/do_patch) would match again and insert
+    # a second, duplicate "using Error::operator=;".
+    if ! grep -q 'using Error::operator=;' ${S}/include/ecl/time_lite/errors.hpp; then
+        sed -i \
+            -e '/TimeError(const ErrorFlag& flag = UnknownError) : Error(flag) {}/a\
 \
   using Error::operator=;' \
-        ${S}/include/ecl/time_lite/errors.hpp
+            ${S}/include/ecl/time_lite/errors.hpp
+    fi
 }
 
 # Setting LICENSE from BSD to BSD-3-Clause to be SPDX compliant

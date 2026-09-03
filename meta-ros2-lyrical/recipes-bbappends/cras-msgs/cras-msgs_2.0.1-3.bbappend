@@ -7,6 +7,10 @@
 # Genuine upstream package.xml bug; fix by adding the missing tag next to
 # the existing ROS_VERSION==2-conditioned rosidl_default_generators depend.
 do_configure:prepend() {
-    sed -i -e '/rosidl_default_generators<\/build_depend>/a\  <depend>service_msgs</depend>' \
-        ${S}/package.xml
+    # Guarded against a re-run duplicating the tag -- see
+    # autoware-adapi-version-msgs' bbappend for why.
+    if ! grep -q '<depend>service_msgs</depend>' ${S}/package.xml; then
+        sed -i -e '/rosidl_default_generators<\/build_depend>/a\  <depend>service_msgs</depend>' \
+            ${S}/package.xml
+    fi
 }
