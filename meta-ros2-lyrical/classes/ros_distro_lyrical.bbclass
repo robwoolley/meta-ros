@@ -107,10 +107,20 @@ python() {
 # bitbake-getvar, and confirmed this was silently under-triggering by
 # rebuilding test-msgs after this exact fix and a cleansstate and seeing
 # rosidl_adapter still absent from its sysroot.
+#
+# Also checks ROS_BUILD_DEPENDS for the bare token: auto-apms-interfaces,
+# cx-msgs and yasmin-msgs each declare rosidl_default_generators as a
+# regular build_depend rather than a buildtool_depend (a package.xml
+# authoring bug independent of the two above), so their DEPENDS never
+# gets the -native token via ROS_BUILDTOOL_DEPENDS at all -- CMake ends up
+# using the *target* rosidl_default_generators config instead, but the
+# underlying native codegen tools are just as required.
 python() {
     if d.getVar('PN') in ('rosidl-default-generators', 'rosidl-adapter'):
         return
-    if 'rosidl-default-generators-native' in (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split():
+    buildtool_deps = (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split()
+    build_deps = (d.getVar('ROS_BUILD_DEPENDS') or '').split()
+    if 'rosidl-default-generators-native' in buildtool_deps or 'rosidl-default-generators' in build_deps:
         d.appendVar('DEPENDS', ' rosidl-adapter-native')
 }
 
@@ -139,11 +149,15 @@ python() {
 # Gates on ROS_BUILDTOOL_DEPENDS's rosidl-default-generators-native token,
 # not DEPENDS's bare token -- see the rosidl-adapter-native fix above for
 # why the bare-token check silently missed plain leaf packages like
-# test-msgs.
+# test-msgs. Also checks ROS_BUILD_DEPENDS's bare token for the same
+# mis-declared-as-build_depend packages noted there (auto-apms-interfaces,
+# cx-msgs, yasmin-msgs).
 python() {
     if d.getVar('PN') in ('rosidl-default-generators', 'rosidl-generator-py'):
         return
-    if 'rosidl-default-generators-native' in (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split():
+    buildtool_deps = (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split()
+    build_deps = (d.getVar('ROS_BUILD_DEPENDS') or '').split()
+    if 'rosidl-default-generators-native' in buildtool_deps or 'rosidl-default-generators' in build_deps:
         d.appendVar('DEPENDS', ' python3-numpy-native')
 }
 
@@ -180,10 +194,38 @@ python() {
 # why the bare-token check silently missed plain leaf packages like
 # test-msgs (confirmed by rebuilding it after this exact fix and a
 # cleansstate: action_msgs/service_msgs/unique_identifier_msgs were still
-# completely absent from its DEPENDS and its sysroot).
+# completely absent from its DEPENDS and its sysroot). Also checks
+# ROS_BUILD_DEPENDS's bare token for the same mis-declared-as-build_depend
+# packages noted there (auto-apms-interfaces, cx-msgs, yasmin-msgs).
 python() {
     if d.getVar('PN') in ('rosidl-default-generators', 'action-msgs', 'service-msgs', 'unique-identifier-msgs'):
         return
-    if 'rosidl-default-generators-native' in (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split():
+    buildtool_deps = (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split()
+    build_deps = (d.getVar('ROS_BUILD_DEPENDS') or '').split()
+    if 'rosidl-default-generators-native' in buildtool_deps or 'rosidl-default-generators' in build_deps:
         d.appendVar('DEPENDS', ' action-msgs service-msgs unique-identifier-msgs')
+}
+
+# Fourth gap in the same family, specific to the mis-declared-as-build_depend
+# packages above (auto-apms-interfaces, cx-msgs, yasmin-msgs): since they
+# resolve find_package(rosidl_default_generators) against the *target*
+# variant instead of native, its exported-dependencies chain
+# (ament_cmake_export_dependencies-extras.cmake, via rosidl_core_generators)
+# does find_package(rosidl_cmake) itself and fails hard with "By not
+# providing Findrosidl_cmake.cmake ... CMake did not find one". Unlike the
+# other three gaps above, this one is *not* also present in the
+# buildtool_depend-correct case: resolving against the *native*
+# rosidl_default_generators config (e.g. test-msgs) never triggers that
+# chain at all (confirmed: its configure log has zero mentions of
+# rosidl_cmake or rosidl_core_generators) -- so this gates on the
+# ROS_BUILD_DEPENDS bare-token condition only, not ROS_BUILDTOOL_DEPENDS's
+# native token. rosidl-cmake-native is the actual generate-time tool the
+# target config's extras.cmake is looking for (see the ros-distro.inc
+# DEPENDS:append:pn-rosidl-cmake fix, which stages rosidl-adapter-native
+# onto rosidl-cmake itself for the same reason).
+python() {
+    if d.getVar('PN') in ('rosidl-default-generators', 'rosidl-cmake'):
+        return
+    if 'rosidl-default-generators' in (d.getVar('ROS_BUILD_DEPENDS') or '').split():
+        d.appendVar('DEPENDS', ' rosidl-cmake-native')
 }
