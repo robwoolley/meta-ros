@@ -89,13 +89,28 @@ python() {
 # sysroot only gets what's in that recipe's own DEPENDS -- a dependency's
 # own native tool requirements don't cascade into a grandparent consumer's
 # recipe-sysroot-native. So every package that transitively needs
-# rosidl_generate_interfaces() -- i.e. every one with rosidl-default-generators
-# in DEPENDS, the same near-universal condition as the rosidl-default-runtime
-# fix above -- needs rosidl-adapter-native added directly to its own DEPENDS.
+# rosidl_generate_interfaces() -- i.e. every one that declares
+# rosidl_default_generators as its buildtool per REP-149, which superflore
+# always maps to the token rosidl-default-generators-native in
+# ROS_BUILDTOOL_DEPENDS -- needs rosidl-adapter-native added directly to
+# its own DEPENDS.
+#
+# IMPORTANT: this must check ROS_BUILDTOOL_DEPENDS for the *-native*
+# token, not DEPENDS for the bare (target) token. Originally checked
+# 'rosidl-default-generators' in DEPENDS, matching the rosidl-default-runtime
+# fix's style above -- but that bare token only shows up in DEPENDS for
+# packages whose ROS_EXPORT_DEPENDS also happens to list it (e.g.
+# autoware-planning-msgs, which is why validation against that recipe
+# looked correct). A plain leaf package like test-msgs has *only*
+# rosidl-default-generators-native in its DEPENDS (via
+# ROS_BUILDTOOL_DEPENDS), never the bare token -- confirmed directly via
+# bitbake-getvar, and confirmed this was silently under-triggering by
+# rebuilding test-msgs after this exact fix and a cleansstate and seeing
+# rosidl_adapter still absent from its sysroot.
 python() {
     if d.getVar('PN') in ('rosidl-default-generators', 'rosidl-adapter'):
         return
-    if 'rosidl-default-generators' in (d.getVar('DEPENDS') or '').split():
+    if 'rosidl-default-generators-native' in (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split():
         d.appendVar('DEPENDS', ' rosidl-adapter-native')
 }
 
@@ -120,10 +135,15 @@ python() {
 # python3-numpy-native can ever satisfy it here -- confirmed no actual
 # numpy files (just an unrelated same-named file from setuptools) exist
 # anywhere under any consumer's recipe-sysroot-native.
+#
+# Gates on ROS_BUILDTOOL_DEPENDS's rosidl-default-generators-native token,
+# not DEPENDS's bare token -- see the rosidl-adapter-native fix above for
+# why the bare-token check silently missed plain leaf packages like
+# test-msgs.
 python() {
     if d.getVar('PN') in ('rosidl-default-generators', 'rosidl-generator-py'):
         return
-    if 'rosidl-default-generators' in (d.getVar('DEPENDS') or '').split():
+    if 'rosidl-default-generators-native' in (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split():
         d.appendVar('DEPENDS', ' python3-numpy-native')
 }
 
@@ -152,11 +172,18 @@ python() {
 # parse time when this anonymous python runs, well before do_unpack. So,
 # same as python3-numpy-native and rosidl-adapter-native above: stage
 # unconditionally for every rosidl_generate_interfaces() user (anything
-# with rosidl-default-generators in DEPENDS) rather than only those that
-# need it -- harmless for the ones that don't.
+# declaring rosidl_default_generators as its buildtool) rather than only
+# those that need it -- harmless for the ones that don't.
+#
+# Gates on ROS_BUILDTOOL_DEPENDS's rosidl-default-generators-native token,
+# not DEPENDS's bare token -- see the rosidl-adapter-native fix above for
+# why the bare-token check silently missed plain leaf packages like
+# test-msgs (confirmed by rebuilding it after this exact fix and a
+# cleansstate: action_msgs/service_msgs/unique_identifier_msgs were still
+# completely absent from its DEPENDS and its sysroot).
 python() {
     if d.getVar('PN') in ('rosidl-default-generators', 'action-msgs', 'service-msgs', 'unique-identifier-msgs'):
         return
-    if 'rosidl-default-generators' in (d.getVar('DEPENDS') or '').split():
+    if 'rosidl-default-generators-native' in (d.getVar('ROS_BUILDTOOL_DEPENDS') or '').split():
         d.appendVar('DEPENDS', ' action-msgs service-msgs unique-identifier-msgs')
 }
