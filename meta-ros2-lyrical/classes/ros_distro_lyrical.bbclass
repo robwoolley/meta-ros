@@ -126,3 +126,37 @@ python() {
     if 'rosidl-default-generators' in (d.getVar('DEPENDS') or '').split():
         d.appendVar('DEPENDS', ' python3-numpy-native')
 }
+
+# Different symptom, same "package.xml under-declares a rosidl-tooling-
+# injected implicit dependency" family: rosidl_generate_interfaces()
+# silently needs action_msgs (for any .action file: goal ID/status types),
+# unique_identifier_msgs (action goal UUIDs), and service_msgs (any .srv
+# file, since a recent rosidl version -- see the cras-msgs investigation
+# earlier in this project's history) -- none of which package.xml authors
+# are expected to declare, confirmed by grepping several affected
+# recipes' generated ROS_BUILD_DEPENDS/ROS_EXEC_DEPENDS: completely absent
+# in all of them, e.g. test-msgs (has actions) and
+# autoware-internal-debug-msgs (has services).
+#
+# Symptom: CMakeCache.txt shows action_msgs_DIR/service_msgs_DIR/
+# unique_identifier_msgs_DIR all resolved to recipe-sysroot-*native*
+# (confirmed: none of the three exist as target-arch in the affected
+# recipes' own recipe-sysroot at all), so the final target link command
+# ends up passing native x86-64 .so files to the aarch64 linker:
+# "error adding symbols: file in wrong format". Affected at least 9
+# recipes in the last full build.
+#
+# Can't gate this on file contents (does this package actually have a
+# .action/.srv file?) the way the earlier per-recipe fixes in this file
+# gate on DEPENDS/ROS_EXEC_DEPENDS tokens -- ${S} isn't populated yet at
+# parse time when this anonymous python runs, well before do_unpack. So,
+# same as python3-numpy-native and rosidl-adapter-native above: stage
+# unconditionally for every rosidl_generate_interfaces() user (anything
+# with rosidl-default-generators in DEPENDS) rather than only those that
+# need it -- harmless for the ones that don't.
+python() {
+    if d.getVar('PN') in ('rosidl-default-generators', 'action-msgs', 'service-msgs', 'unique-identifier-msgs'):
+        return
+    if 'rosidl-default-generators' in (d.getVar('DEPENDS') or '').split():
+        d.appendVar('DEPENDS', ' action-msgs service-msgs unique-identifier-msgs')
+}
