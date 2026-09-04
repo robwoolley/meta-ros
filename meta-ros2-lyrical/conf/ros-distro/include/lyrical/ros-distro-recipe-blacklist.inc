@@ -225,6 +225,14 @@ SKIP_RECIPE[vision-msgs-rviz-plugins] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_G
 SKIP_RECIPE[qml-ros2-plugin] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: find_package(Qt5 REQUIRED COMPONENTS Qml Quick Multimedia ...) with no Qt6 fallback, requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
 SKIP_RECIPE[turtle-nest] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Svg Concurrent) with no Qt6 fallback, requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
 
+# Cascading dependent: DESCRIPTION is literally "Demo of polygon_rviz_plugins"
+# and it DEPENDS (build-time, not just RDEPENDS) on the now-blacklisted
+# polygon-rviz-plugins above, so it's unbuildable for the same reason --
+# confirmed by a real world build: "ERROR: Nothing PROVIDES
+# 'polygon-rviz-plugins' (but .../polygon-demos_1.3.0-3.bb DEPENDS on or
+# otherwise requires it)".
+SKIP_RECIPE[polygon-demos] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: DEPENDS on polygon-rviz-plugins, which requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
+
 SKIP_RECIPE[zenoh-bridge-dds] ?= "${@bb.utils.contains_any('ROS_WORLD_SKIP_GROUPS', ['clang', 'cargo'], 'clang: depends on clang which requires meta-clang layer; cargo: depends on cargo which requires meta-rust layer (or oe-core[honister] or newer)', '', d)}"
 
 SKIP_RECIPE[cuda-buffer] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
