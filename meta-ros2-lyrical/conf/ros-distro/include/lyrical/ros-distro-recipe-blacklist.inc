@@ -203,6 +203,28 @@ SKIP_RECIPE[wiimote] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cwiid', 
 SKIP_RECIPE[yasmin-editor] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: rdepends on python3-pyqt5, which requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
 SKIP_RECIPE[py-trees-ros-viewer] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: rdepends on python3-pyqt5, which requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
 SKIP_RECIPE[py-trees-ros-tutorials] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: rdepends on python3-pyqt5, which requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
+
+# Unlike the pyqt5 group above, these call find_package(Qt5 ... REQUIRED)
+# directly in their own CMakeLists.txt with no Qt6 fallback (rviz-common
+# itself and its other plugins all try Qt6 first, falling back to Qt5 only
+# if Qt6_FOUND is false -- these four packages skip that and go straight to
+# a hard Qt5 requirement). Since qt5 is in ROS_WORLD_SKIP_GROUPS, the
+# per-recipe cmake_qt5 compat class (see the polygon-rviz-plugins/
+# vision-msgs-rviz-plugins bbappends) is never inherited either, so
+# find_package(Qt5) has nothing to find at all: "By not providing
+# FindQt5.cmake ... CMake did not find one." Porting each to the same
+# Qt6-first idiom as rviz-common is plausible for the plain-Widgets ones
+# (polygon-rviz-plugins, vision-msgs-rviz-plugins) but qml-ros2-plugin's
+# QtQml/QtQuick/QtMultimedia usage and turtle-nest's broader Widgets/Gui/
+# Svg/Concurrent surface both go well beyond a CMakeLists-only change --
+# real Qt5->Qt6 source porting, out of scope here. Blacklisted uniformly
+# for consistency and because the project has already decided (via
+# ROS_WORLD_SKIP_GROUPS) not to carry a real Qt5 toolchain in this distro.
+SKIP_RECIPE[polygon-rviz-plugins] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: find_package(Qt5 REQUIRED) with no Qt6 fallback (unlike rviz-common), requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
+SKIP_RECIPE[vision-msgs-rviz-plugins] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: find_package(Qt5 REQUIRED) with no Qt6 fallback (unlike rviz-common), requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
+SKIP_RECIPE[qml-ros2-plugin] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: find_package(Qt5 REQUIRED COMPONENTS Qml Quick Multimedia ...) with no Qt6 fallback, requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
+SKIP_RECIPE[turtle-nest] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Svg Concurrent) with no Qt6 fallback, requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
+
 SKIP_RECIPE[zenoh-bridge-dds] ?= "${@bb.utils.contains_any('ROS_WORLD_SKIP_GROUPS', ['clang', 'cargo'], 'clang: depends on clang which requires meta-clang layer; cargo: depends on cargo which requires meta-rust layer (or oe-core[honister] or newer)', '', d)}"
 
 SKIP_RECIPE[cuda-buffer] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
