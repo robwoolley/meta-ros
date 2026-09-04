@@ -413,11 +413,13 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_META_QT5 = " \
     pmb2-description \
     pmb2-navigation \
     pmb2-robot \
+    polygon-demos \
     polygon-rviz-plugins \
     python-qt-binding \
     py-trees-js \
     py-trees-ros-tutorials \
     py-trees-ros-viewer \
+    qml-ros2-plugin \
     qt-dotgraph \
     qt-gui \
     qt-gui-app \
@@ -506,6 +508,7 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_META_QT5 = " \
     turtle-tf2-cpp \
     turtlebot3-gazebo \
     turtlebot3-simulations \
+    turtle-nest \
     turtlesim \
     ur \
     ur-bringup \
@@ -515,6 +518,7 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_META_QT5 = " \
     ur-moveit-config \
     urdf-tutorial \
     vision-msgs-layers \
+    vision-msgs-rviz-plugins \
     webots-ros2-epuck \
     yasmin-editor \
     webots-ros2-tiago \
