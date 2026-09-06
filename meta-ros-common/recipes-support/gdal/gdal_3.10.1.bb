@@ -34,6 +34,7 @@ DEPENDS = " \
     curl \
     expat \
     gtest \
+    json-c \
     libarchive \
     libdeflate \
     libjpeg-turbo \
