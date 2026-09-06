@@ -9,6 +9,15 @@ SRC_URI = "git://github.com/openscenegraph/OpenSceneGraph.git;protocol=https;bra
 # WxWindows-exception-3.1 is a valid SPDX identifier but bitbake does not recognize it
 ERROR_QA:remove = "license-exists"
 
+# do_create_spdx isn't gated by ERROR_QA/INSANE_SKIP like do_populate_lic is,
+# so it still hard-fails ("Cannot find any text for license
+# WxWindows-exception-3.1") unless told where to find the text. The full
+# wxWindows Library Licence exception text is embedded directly in this
+# recipe's own LICENSE.txt (the same file already used for the LGPL-2.1-only
+# LIC_FILES_CHKSUM entry above), so point NO_GENERIC_LICENSE at it rather than
+# a standalone common-licenses file.
+NO_GENERIC_LICENSE[WxWindows-exception-3.1] = "LICENSE.txt"
+
 SRCREV = "a827840baf0786d72e11ac16d5338a4ee25779db"
 
 
