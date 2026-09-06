@@ -8,6 +8,14 @@ SRCREV = "05cd874ac9a1b33a7777a74bc8a2960f3429f267"
 
 inherit cmake pkgconfig python3targetconfig
 
+# zenoh-c/zenoh-cpp enable gz-transport's optional Zenoh backend
+# (gz_find_package(zenohc)/gz_find_package(zenohcxx) in its CMakeLists.txt,
+# CONFIG-mode find_package under those exact names) alongside the always-on
+# ZeroMQ one. Same recipes and unversioned PN already used for this exact
+# purpose by meta-ros2-lyrical's zenoh-cpp-vendor bbappend (rmw_zenoh's own
+# vendor package) -- version is resolved via meta-zenoh's own
+# PREFERRED_VERSION_zenoh-c/zenoh-cpp (currently 1.10.0), so it isn't pinned
+# here.
 DEPENDS = " \
     gz-cmake \
     gz-msgs \
@@ -16,6 +24,8 @@ DEPENDS = " \
     util-linux-libuuid \
     zeromq \
     cppzmq \
+    zenoh-c \
+    zenoh-cpp \
     doxygen-native \
     graphviz-native \
     protobuf \
