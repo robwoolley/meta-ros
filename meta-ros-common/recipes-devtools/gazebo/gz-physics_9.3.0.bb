@@ -8,6 +8,15 @@ SRC_URI = "git://github.com/gazebosim/gz-physics.git;protocol=https;branch=gz-ph
 SRCREV = "df50665d7a6eee58ef08eb6534685c7ae609c637"
 
 
+# urdfdom is needed directly (not just transitively via gz-dartsim-vendor's
+# own dartsim recipe, which already depends on it): DARTConfig.cmake's
+# dart_utils-urdfComponent.cmake calls find_package(urdfdom QUIET CONFIG)
+# itself when gz-physics requests DART's "utils-urdf" component, so
+# urdfdom-config.cmake has to be staged in gz-physics's own sysroot too --
+# same "grandparent doesn't inherit a dependency's own staging" shape as
+# elsewhere in this tree. Without it: "Cannot retrieve dart-utils-urdf
+# because the dependency urdfdom could not be found" and the whole dartsim
+# physics engine plugin gets silently skipped.
 DEPENDS += " \
     gz-cmake \
     gz-common \
@@ -21,6 +30,7 @@ DEPENDS += " \
     bullet \
     cppcheck-native \
     google-benchmark-vendor \
+    urdfdom \
 "
 
 EXTRA_OECMAKE += " -DBUILD_TESTING=OFF"
