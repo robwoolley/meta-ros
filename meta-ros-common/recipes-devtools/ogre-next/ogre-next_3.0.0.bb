@@ -35,6 +35,7 @@ DEPENDS = " \
     libxaw \
     libxcb \
     libxrandr \
+    openvr \
     rapidjson \
     renderdoc \
     mesa \
@@ -62,7 +63,18 @@ EXTRA_OECMAKE += " \
     -DOGRE_CONFIG_UNIX_NO_X11:BOOL=FALSE \
     -DOGRE_GLSUPPORT_USE_EGL_HEADLESS:BOOL=TRUE \
     -DOGRE_GLSUPPORT_USE_GLX:BOOL=TRUE \
+    -DOGRE_CONFIG_RENDERDOC_INTEGRATION:BOOL=FALSE \
 "
+
+# OGRE_CONFIG_RENDERDOC_INTEGRATION defaults to TRUE once RenderDoc_FOUND, but
+# this ogre-next release's integration code is incompatible with the
+# renderdoc_app.h shipped by our renderdoc recipe (1.38): OgreRenderSystem.h
+# forward-declares "struct RENDERDOC_API_1_4_1;", while this header version
+# instead aliases that name via "typedef RENDERDOC_API_1_6_0
+# RENDERDOC_API_1_4_1;" -- a genuine struct-tag vs. typedef-name conflict, not
+# an OE packaging issue. RenderDoc itself is still found and satisfies the
+# optional-dependency check; only the broken runtime capture hook (unneeded
+# for headless simulation) is disabled.
 
 do_configure:append() {
     # Remove the old copy of glxext.h to use the system one that defines PFNGLXSWAPINTERVALMESAPROC
@@ -72,7 +84,7 @@ do_configure:append() {
     #   git/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXWindow.cpp:720:9: error: 'PFNGLXSWAPINTERVALMESAPROC'
     #       was not declared in this scope; did you mean 'PFNGLXSWAPINTERVALEXTPROC'?
     #   git/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXWindow.cpp:721:9: error: '_glXSwapInterval
-    rm ${S}/RenderSystems/GL3Plus/include/GL/glxext.h
+    rm -f ${S}/RenderSystems/GL3Plus/include/GL/glxext.h
 }
 
 FILES:${PN}-dev += "${libdir}/OGRE-Next/cmake ${libdir}/OGRE-Next/*${SOLIBSDEV}"
