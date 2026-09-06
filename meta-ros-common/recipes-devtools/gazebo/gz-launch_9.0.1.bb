@@ -9,6 +9,17 @@ SRC_URI = "git://github.com/gazebosim/gz-launch.git;protocol=https;branch=gz-lau
 SRCREV = "5beda2bc4c2aed35270d716b312a2eb5062f34f5"
 
 
+# gz-launch itself never calls find_package(Qt6 ...) -- it only consumes
+# gz-gui's exported target, which does (COMPONENTS Core;Quick;QuickControls2;
+# Widgets;Test) and whose link interface references Qt6::Qml. Relying on
+# gz-gui's own DEPENDS to transitively stage qtbase/qtdeclarative doesn't
+# work here (same shape as every other "grandparent doesn't inherit a
+# dependency's own staging" gap found elsewhere in this tree): without
+# qtdeclarative directly in gz-launch's own DEPENDS, gz-gui's find_package(Qt6)
+# call inside gz-gui-config.cmake silently fails to create the Qt6::Qml
+# imported target, and CMake only surfaces this later as "set_target_properties:
+# ... but the target was not found" when gz-gui's own target tries to
+# reference it.
 DEPENDS = " \
     gz-cmake \
     gz-common \
@@ -24,6 +35,9 @@ DEPENDS = " \
     libyaml \
     protobuf \
     protobuf-native \
+    qtbase \
+    qtdeclarative \
+    qtdeclarative-native \
     util-linux-libuuid \
 "
 
