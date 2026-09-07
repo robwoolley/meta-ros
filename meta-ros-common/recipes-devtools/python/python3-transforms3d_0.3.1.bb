@@ -13,3 +13,15 @@ RDEPENDS:${PN} += "\
     python3-numpy \
 "
 
+# setup.py's bundled versioneer.py calls two configparser APIs removed in
+# Python 3.12 (this target's python3 is 3.14): SafeConfigParser (deprecated
+# since 3.2; ConfigParser is a drop-in replacement, it was just the old
+# name) and ConfigParser.readfp() (deprecated since 3.2; read_file() is its
+# drop-in replacement).
+do_configure:prepend() {
+    sed -i \
+        -e 's/configparser\.SafeConfigParser()/configparser.ConfigParser()/' \
+        -e 's/parser\.readfp(f)/parser.read_file(f)/' \
+        ${S}/versioneer.py
+}
+
