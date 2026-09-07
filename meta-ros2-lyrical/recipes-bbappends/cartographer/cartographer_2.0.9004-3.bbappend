@@ -21,8 +21,15 @@ DEPENDS += "\
     protobuf-native \
 "
 
-# Otherwise linking with liblua.a fails with undefined references to dlsym, dlopen, dlerror, dlclose
-CXXFLAGS += "-fuse-ld=gold"
+# This -fuse-ld=gold workaround (for liblua.a linking with undefined
+# references to dlsym, dlopen, dlerror, dlclose) no longer works at all on
+# this toolchain: binutils here doesn't ship ld.gold, so it hard-fails with
+# "collect2: fatal error: cannot find 'ld'" before even getting to test
+# whether the original dl-linking issue still applies. The two dl-linking
+# patches above (0001-CMakeLists.txt-link-with-dl.patch,
+# 0001-FindLuaGoogle.cmake-explicitly-link-with-dl.patch) already address
+# the named symbols directly; dropping the gold requirement to use this
+# toolchain's actual default linker instead.
 
 # Doesn't need runtime dependency on ceres-solver
 ROS_EXEC_DEPENDS:remove = "ceres-solver"

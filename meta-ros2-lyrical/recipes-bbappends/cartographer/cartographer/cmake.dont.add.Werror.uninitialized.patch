@@ -8,15 +8,29 @@ Otherwise it fails with older Yocto with following error (doesn't fail with 3.2 
 ....
 | cc1plus: some warnings being treated as errors
 
+Also drops -Werror=return-type: ceres-solver's bundled miniglog shim
+(ceres/internal/miniglog/glog/logging.h) doesn't mark its FATAL-log
+codepath as [[noreturn]], so GCC 15 flags "control reaches end of non-void
+function" at every LOG(FATAL)-terminated function in cartographer's own
+code that expands through it. A CXXFLAGS-level -Wno-error=return-type
+doesn't win here: GOOG_CXX_FLAGS's own -Werror=return-type is appended to
+the per-target compile command *after* CXXFLAGS, so it always overrides a
+CXXFLAGS-level override. Same "vendored third-party header bug, not
+cartographer's" reasoning as the pre-existing -Werror=uninitialized removal
+above -- fixing it at the actual source avoids the ordering problem
+entirely.
+
 Upstream-Status: Pending
 
 diff --git a/cmake/functions.cmake b/cmake/functions.cmake
 index cdbd896..fa265ca 100644
 --- a/cmake/functions.cmake
 +++ b/cmake/functions.cmake
-@@ -91,7 +91,6 @@ macro(google_initialize_cartographer_project)
+@@ -89,9 +89,7 @@ macro(google_initialize_cartographer_project)
+     google_add_flag(GOOG_CXX_FLAGS "-Werror=format-security")
+     google_add_flag(GOOG_CXX_FLAGS "-Werror=missing-braces")
      google_add_flag(GOOG_CXX_FLAGS "-Werror=reorder")
-     google_add_flag(GOOG_CXX_FLAGS "-Werror=return-type")
+-    google_add_flag(GOOG_CXX_FLAGS "-Werror=return-type")
      google_add_flag(GOOG_CXX_FLAGS "-Werror=switch")
 -    google_add_flag(GOOG_CXX_FLAGS "-Werror=uninitialized")
  
