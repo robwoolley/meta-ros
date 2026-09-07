@@ -171,11 +171,24 @@ ROS_WORLD_SKIP_GROUPS += "${@bb.utils.contains_any('LICENSE_FLAGS_ACCEPTED', ['c
 # use that in dunfell and blacklist explicitly in older releases
 ROS_WORLD_SKIP_GROUPS += "${@bb.utils.contains('DISTRO_FEATURES', 'x11', '', 'glfw', d)}"
 
-# webots recipes depending on unavailable python moules like:
-# ERROR: Nothing RPROVIDES 'ROS_UNRESOLVED_DEP-python-transforms3d-pip' (but meta-ros2-rolling/generated-recipes/webots-ros2-desktop/webots-ros2-core_0.0.3-1.bb RDEPENDS on or otherwise requires it)
-# ERROR: Nothing RPROVIDES 'ROS_UNRESOLVED_DEP-urdf2webots-pip' (but meta-ros2-rolling/generated-recipes/webots-ros2-desktop/webots-ros2-importer_0.0.3-1.bb RDEPENDS on or otherwise requires it)
-# ERROR: Nothing RPROVIDES 'ROS_UNRESOLVED_DEP-python3-collada-pip' (but meta-ros2-rolling/generated-recipes/webots-ros2-desktop/webots-ros2-importer_0.0.3-1.bb RDEPENDS on or otherwise requires it)
-ROS_WORLD_SKIP_GROUPS += "webots-python-modules"
+# webots-python-modules previously skipped: webots-ros2-core (needing
+# python-transforms3d-pip) and webots-ros2-importer (needing urdf2webots-pip
+# and python3-collada-pip) referenced python modules with no OE recipe.
+# Re-checked against the current lyrical recipes (webots_ros2 2025.0.1):
+# - webots-ros2-core no longer exists as a package at all in this release;
+#   nothing here still needs python-transforms3d-pip through it.
+# - webots-ros2-importer no longer references urdf2webots-pip -- dropped
+#   upstream.
+# - webots-ros2-importer's remaining python3-collada dependency is now
+#   resolved below to the new python3-collada recipe, and transforms3d is
+#   already resolved to python3-transforms3d elsewhere in this file.
+#
+# Note: webots-ros2-driver (and everything depending on it, e.g.
+# webots-ros2-mavic/tesla/turtlebot) remains unbuildable on this target for
+# an entirely separate, unrelated reason: it's COMPATIBLE_MACHINE-restricted
+# away from raspberrypi5 (a full 3D simulator isn't meant for this embedded
+# target). webots-ros2-importer itself has no such restriction and now
+# builds successfully end-to-end.
 
 # recipes depending on gazebo-rosdev
 ROS_WORLD_SKIP_GROUPS += "gazebo"
@@ -708,9 +721,7 @@ ROS_UNRESOLVED_DEP-spacenavd = ""
 # via the existing 'babeltrace-python' group
 ROS_UNRESOLVED_DEP-jupyter-notebook = ""
 
-# webots-ros2-importer is already unconditionally skipped via the existing
-# 'webots-python-modules' group
-ROS_UNRESOLVED_DEP-python3-collada = ""
+ROS_UNRESOLVED_DEP-python3-collada = "python3-collada"
 
 # No recipe available in this layer set for any of these, but each is only
 # ever referenced from a ROS_TEST_DEPENDS (REP-0149, informational-only) or
