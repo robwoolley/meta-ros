@@ -136,8 +136,33 @@ ROS_WORLD_SKIP_GROUPS += "connext"
 ROS_WORLD_SKIP_GROUPS += "opensplice"
 # alternative not yet supported implementation for fastrtps, there is no recipe for gurumdds-2.6
 ROS_WORLD_SKIP_GROUPS += "gurumdds"
-# recipes depending on turtlebot3 specific recipes which weren't ported to eloquent yet
-ROS_WORLD_SKIP_GROUPS += "turtlebot3"
+# turtlebot3 previously skipped: the core turtlebot3/turtlebot3_applications
+# packages have no bloom release for ANY ROS 2 distro at all (confirmed via
+# rosdistro: tracked only as doc/source, never release) -- a permanent
+# upstream characteristic, not a "not yet ported" gap. 13 of 15 upstream
+# packages across both repos are now hand-authored in
+# meta-ros-common/recipes-turtlebot3/ (see turtlebot3_2.3.7.bb and
+# turtlebot3-applications_1.3.3.bb for what's deliberately still missing
+# and why: Nav2 and a couple of real source-level API migrations).
+#
+# slam-karto, hard RDEPENDS of packagegroup-ros-turtlebot3-extended's
+# TURTLEBOT3_PACKAGES_ADDITIONAL_SLAM_METHODS, has no ROS 2 port at all,
+# anywhere (checked rosdistro for kilted/jazzy/humble/rolling/lyrical --
+# zero hits everywhere), unlike everything else in this file which is
+# merely unbuilt-by-this-project. That packagegroup is shared, generic
+# infrastructure spanning both ROS1 and ROS2 distros in this same tree
+# (slam-karto is a real, working ROS1 package), so override the variable
+# here for lyrical specifically rather than editing the shared recipe.
+#
+# cartographer-ros, the other listed SLAM method, is ALSO dropped here: it
+# needs cartographer, which fails against this layer set's Abseil (see
+# turtlebot3_2.3.7.bb's note -- two other real compatibility issues in
+# cartographer were fixed directly in its own bbappend this same session,
+# but this third one, LOG_IF_EVERY_N, is left as a documented gap). That
+# leaves no bundled SLAM method for this specific packagegroup on lyrical
+# for now; turtlebot3-cartographer itself remains available (just not
+# buildable yet) for whenever cartographer's gap is closed.
+TURTLEBOT3_PACKAGES_ADDITIONAL_SLAM_METHODS = ""
 # Needs work to launch qemu to run tests on image on build machine.
 ROS_WORLD_SKIP_GROUPS += "launch"
 # babeltrace-python previously skipped: python3-babeltrace couldn't just be
