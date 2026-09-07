@@ -140,10 +140,16 @@ ROS_WORLD_SKIP_GROUPS += "gurumdds"
 ROS_WORLD_SKIP_GROUPS += "turtlebot3"
 # Needs work to launch qemu to run tests on image on build machine.
 ROS_WORLD_SKIP_GROUPS += "launch"
-# recipes depending on ROS_UNRESOLVED_DEP-python3-babeltrace which cannot be just
-# set to babeltrace, because python bindings in babeltrace are not enabled as shown in log.do_configure:
-# configure: You may configure with --enable-python-bindings if you want Python bindings.
-ROS_WORLD_SKIP_GROUPS += "babeltrace-python"
+# babeltrace-python previously skipped: python3-babeltrace couldn't just be
+# mapped to babeltrace2, because python bindings weren't enabled in its
+# do_configure output ("You may configure with --enable-python-bindings if
+# you want Python bindings"). Re-verified with a real build: babeltrace2's
+# configure summary now shows "Python bindings: yes" (swig/python3-dev are
+# both found and EXTRA_OECONF already passes --enable-python-bindings), and
+# its bt2 python module is installed into the main babeltrace2 package
+# itself (FILES:${PN} includes ${PYTHON_SITEPACKAGES_DIR}/*, no separate
+# -python subpackage) -- see the mapping below.
+ROS_UNRESOLVED_DEP-python3-babeltrace = "babeltrace2"
 # recipes depends on cwiid
 ROS_WORLD_SKIP_GROUPS += "cwiid"
 # recipes depends on libspnav
