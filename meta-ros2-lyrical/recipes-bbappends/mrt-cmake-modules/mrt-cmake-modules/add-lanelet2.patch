@@ -8,7 +8,20 @@ Index: git/yaml/cmake.yaml
 ===================================================================
 --- git.orig/yaml/cmake.yaml
 +++ git/yaml/cmake.yaml
-@@ -79,6 +79,48 @@ gtest:
+@@ -20,7 +20,11 @@
+ boost:
+   components: [wserialization thread random serialization log_setup prg_exec_monitor
+-      wave system chrono filesystem locale timer date_time regex graph program_options
++      wave chrono filesystem locale timer date_time regex graph program_options
+       unit_test_framework log atomic iostreams]
++  # 'system' dropped above: Boost.System has been header-only since Boost 1.85
++  # (no compiled library, no boost_system-config.cmake), so requesting it as a
++  # find_package(Boost COMPONENTS ...) component hard-fails on this Boost
++  # version -- e.g. this broke lanelet2-core's generic <depend>boost</depend>.
+   include_dirs: [Boost_INCLUDE_DIRS]
+   libraries: [Boost_LIBRARIES]
+   library_dirs: [Boost_LIBRARY_DIRS]
+@@ -79,6 +83,48 @@ gtest:
    include_dirs: [gtest_INCLUDE_DIRS]
    libraries: [gtest_LIBRARIES]
    name: gtest

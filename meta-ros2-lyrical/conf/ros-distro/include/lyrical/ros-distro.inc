@@ -265,14 +265,33 @@ ROS_WORLD_SKIP_GROUPS += "gripper"
 # depends on them.
 ROS_WORLD_SKIP_GROUPS += "cuda"
 
-# packages in the lanelet2 family: lanelet2-core needs Boost's "system"
-# component via mrt_cmake_modules' AutoDeps machinery, but this layer set's
-# boost recipe (1.90.0) doesn't stage a boost_system-1.90.0 CMake package
-# config at all (every other boost_<lib> component is present) -- modern
-# Boost made boost_system header-only/interface-only, and this project's
-# boost recipe's packaging logic only generates per-component CMake configs
-# for libraries it finds a compiled .so for. Fixing this properly belongs in
-# oe-core's boost recipe, not here.
+# lanelet2 family: lanelet2-core originally failed to even CONFIGURE because
+# it requested Boost's "system" component via mrt_cmake_modules' AutoDeps
+# machinery, but this layer set's boost recipe (1.90.0) doesn't stage a
+# boost_system-1.90.0 CMake package config at all (every other boost_<lib>
+# component is present) -- modern Boost made boost_system
+# header-only/interface-only, so the compiled library (and its CMake config)
+# genuinely no longer exists. Fixed at the actual source of the stale
+# request: mrt-cmake-modules' own yaml/cmake.yaml hardcodes "system" into the
+# generic component list it expands any bare <depend>boost</depend> into
+# (see the add-lanelet2.patch bbappend on mrt-cmake-modules), so it's dropped
+# there rather than patching oe-core's boost recipe -- narrower blast
+# radius, and correct for every consumer of that generic AutoDeps expansion,
+# not just lanelet2.
+#
+# That fix is real and lets lanelet2-core get past configure into actual
+# compilation, but it then hits a SEPARATE, deeper problem: lanelet2_core's
+# geometry/Point.h specializes boost::geometry::robust_point_type and
+# references boost::geometry::detail::no_rescale_policy directly -- both
+# private/internal Boost.Geometry implementation details, not public API.
+# Their shape (robust_point_type's template arity, no_rescale_policy's
+# existence/location) has changed between whatever old Boost version
+# lanelet2_core (1.2.1, itself years old upstream) was written against and
+# this layer set's Boost 1.90.0, so it now fails with "'robust_point_type'
+# is not a class template" / "'no_rescale_policy' is not a member of
+# 'boost::geometry::detail'". This needs a real source patch to
+# lanelet2_core adapting to (or dropping) that internal specialization, not
+# a dependency/config fix, so lanelet2 stays skipped for now.
 ROS_WORLD_SKIP_GROUPS += "lanelet2"
 
 # robotraconteur's CMake FindPython3 detects a mismatched native (3.13.5)
