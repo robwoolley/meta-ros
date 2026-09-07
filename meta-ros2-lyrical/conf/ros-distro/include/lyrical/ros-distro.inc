@@ -206,7 +206,11 @@ ROS_WORLD_SKIP_GROUPS += "${@bb.utils.contains('BBFILE_COLLECTIONS', 'clang-laye
 ROS_WORLD_SKIP_GROUPS += "${@bb.utils.contains('BBFILE_COLLECTIONS', 'clang-layer', '', 'clang', d)}"
 
 # recipes depending on cargo which could be provided by cargo@meta-rust or oe-core[honister] and newer release (where it was imported from meta-rust)
-ROS_WORLD_SKIP_GROUPS += "${@bb.utils.contains('BBFILE_COLLECTIONS', 'rust-layer', '', 'cargo', d)}"
+# This oe-core release ships cargo.bbclass natively (no meta-rust/rust-layer
+# needed at all), confirmed by zenoh-c/zenoh-cpp (both inherit cargo)
+# building successfully as explicit gz-transport DEPENDS -- so also check for
+# the bbclass directly rather than only the now-obsolete rust-layer signal.
+ROS_WORLD_SKIP_GROUPS += "${@'' if (bb.utils.contains('BBFILE_COLLECTIONS', 'rust-layer', True, False, d) or os.path.exists(d.expand('${COREBASE}/meta/classes-recipe/cargo.bbclass'))) else 'cargo'}"
 
 # recipes depending on scipy which could be provided by python3-scipy@meta-python-ai
 ROS_WORLD_SKIP_GROUPS += "${@bb.utils.contains('BBFILE_COLLECTIONS', 'meta-python-ai', '', 'scipy', d)}"

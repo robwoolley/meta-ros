@@ -233,7 +233,17 @@ SKIP_RECIPE[turtle-nest] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5'
 # otherwise requires it)".
 SKIP_RECIPE[polygon-demos] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'qt5', 'qt5: DEPENDS on polygon-rviz-plugins, which requires the meta-qt5 layer (not enabled in this distro)', '', d)}"
 
-SKIP_RECIPE[zenoh-bridge-dds] ?= "${@bb.utils.contains_any('ROS_WORLD_SKIP_GROUPS', ['clang', 'cargo'], 'clang: depends on clang which requires meta-clang layer; cargo: depends on cargo which requires meta-rust layer (or oe-core[honister] or newer)', '', d)}"
+# clang and cargo (this oe-core release ships cargo.bbclass natively, no
+# meta-rust needed) are both actually available now -- confirmed by adding
+# cargo-native to DEPENDS (see the bbappend) and getting past the earlier
+# "cargo: not found". But do_compile's own "cargo build" then tries to live
+# git-clone github.com/eclipse-zenoh/zenoh as an unvendored Cargo
+# dependency, which fails outright since do_compile runs network-isolated.
+# Unlike zenoh-c/zenoh-cpp (which vendor their crates via a *-crates.inc and
+# build fully offline), this superflore-generated recipe has no crate
+# vendoring set up at all -- needs real Cargo-vendoring infrastructure work
+# (a *-crates.inc plus offline cargo config), not a dependency/config fix.
+SKIP_RECIPE[zenoh-bridge-dds] ?= "cargo build needs unvendored git dependency (github.com/eclipse-zenoh/zenoh) fetched live over the network, which do_compile can't do -- needs real Cargo crate vendoring, unlike zenoh-c/zenoh-cpp"
 
 SKIP_RECIPE[cuda-buffer] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'Depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
 SKIP_RECIPE[cuda-buffer-backend] ?= "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cuda', 'cuda: depends on cuda-buffer which depends on unavailable ROS_UNRESOLVED_DEP-nvidia-cuda', '', d)}"
