@@ -52,10 +52,18 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_LIBSPNAV = " \
     spacenav \
 "
 
-RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'cargo', '${ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_CARGO}', '', d)}"
-ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_CARGO = " \
-    zenoh-bridge-dds \
-"
+# This used to be gated on the "cargo" ROS_WORLD_SKIP_GROUPS group, but
+# that group no longer triggers (this oe-core ships cargo.bbclass natively
+# now -- see ros-distro.inc). zenoh-bridge-dds itself still can't build for
+# a separate, real reason (its own unconditional SKIP_RECIPE: do_compile's
+# cargo invocation needs unvendored crates fetched live over the network,
+# which the sandboxed build can't do), so remove it unconditionally instead
+# of via a group that no longer reflects its actual blocker. Otherwise
+# ros-image-world has zero buildable providers -- confirmed via a real
+# "bitbake -e ros-image-world": "Missing or unbuildable dependency chain
+# was: ['ros-image-world', 'packagegroup-ros-world',
+# 'packagegroup-ros-world-lyrical', 'zenoh-bridge-dds']".
+RDEPENDS:${PN}:remove = "zenoh-bridge-dds"
 
 # alternative not yet supported implementation for fastrtps
 RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'connext', '${ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_CONNEXT}', '', d)}"
@@ -812,8 +820,26 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_BABELTRACE_PYTHON = " \
     tracetools-test \
 "
 
-RDEPENDS:${PN}:remove = "${@bb.utils.contains('ROS_WORLD_SKIP_GROUPS', 'webots-python-modules', '${ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_WEBOTS_PYTHON_MODULES}', '', d)}"
-ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_WEBOTS_PYTHON_MODULES = " \
+# This used to be gated on the "webots-python-modules" ROS_WORLD_SKIP_GROUPS
+# group, but that group no longer triggers (the python3-collada/transforms3d
+# gaps it was named for are fixed -- see ros-distro.inc). Nearly everything
+# in this list is still genuinely unbuildable here for a completely
+# separate, permanent reason predating this session: webots-ros2-driver
+# (and webots-ros2-control, webots-ros2-tests) are COMPATIBLE_MACHINE-
+# restricted to x86-64 only via their own bbappends, since Webots itself
+# isn't meant for this embedded target -- everything else here either is
+# one of those two recipes directly or transitively DEPENDS on
+# webots-ros2-driver. Remove this (now near-)unconditionally instead of via
+# a group that no longer reflects the real blocker -- confirmed via a real
+# "bitbake -e ros-image-world": "Missing or unbuildable dependency chain
+# was: ['packagegroup-ros-world-lyrical', 'webots-ros2-turtlebot',
+# 'webots-ros2-control']".
+#
+# webots-ros2-importer is the one exception: it doesn't depend on
+# webots-ros2-driver at all (it's a standalone URDF/mesh conversion tool)
+# and now builds successfully once python3-collada was added, so it's
+# dropped from this list rather than kept removed.
+RDEPENDS:${PN}:remove = " \
     webots-ros2 \
     webots-ros2-abb \
     webots-ros2-crazyflie \
@@ -824,8 +850,7 @@ ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES_DEPENDING_ON_WEBOTS_PYTHON_MODULES = " \
     webots-ros2-driver \
     webots-ros2-epuck \
     webots-ros2-examples \
-    webots-ros2-husarion\
-    webots-ros2-importer \
+    webots-ros2-husarion \
     webots-ros2-mavic \
     webots-ros2-tesla \
     webots-ros2-tiago \
